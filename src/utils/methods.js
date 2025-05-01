@@ -7,7 +7,7 @@ export function post(url, params, hideLoading, headers) {
   return request.post(url, params, {
     headers,
     hideLoading,
-    withCredentials: false
+ 
   })
 }
 export function del(url, params, hideLoading, headers) {

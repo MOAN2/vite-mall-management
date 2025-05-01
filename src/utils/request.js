@@ -5,7 +5,10 @@ import router from '../router'
 const request = axios.create({
   baseURL: '/api',
   withCredentials: false,
-  timeout: 20000
+  timeout: 20000,
+  headers: {
+    'Content-Type': 'application/json'  // 添加这一行
+  }
 })
 let loadingServe
 
@@ -26,7 +29,7 @@ request.interceptors.request.use(
     if (loadingServe) {
       loadingServe.close()
     }
-    return Promise.reject(error)
+    return Promise.reject(res)
   }
 ) /*  */
 request.interceptors.response.use(
@@ -47,8 +50,7 @@ request.interceptors.response.use(
       router.push('/login')
     } else if ( res.code !== 200) {
       console.log('请求错误')
-
-      return Promise.reject(error)
+      return Promise.reject(res)  // 使用res变量而不是未定义的error
     }
     return Promise.resolve(res)
   },
@@ -58,7 +60,7 @@ request.interceptors.response.use(
     if (loadingServe) {
       loadingServe.close()
     }
-    return Promise.reject(error)
+    return Promise.reject(res)
   }
 )
 export default request

@@ -525,14 +525,7 @@ const submitFormFn = async () => {
     // 新增分类
 
     try {
-      await api.addClassApi({
-        categoryName: "",
-        parentId: 0,
-        level: 0,
-        icon: "",
-        sortOrder: 0,
-        isEnabled: true,
-      });
+      await api.addClassApi(newCategory);
       ElMessage.success("新增成功");
     } catch (error) {
       ElMessage.error(error || "新增失败，请重试");

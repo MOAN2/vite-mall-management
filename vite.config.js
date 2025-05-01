@@ -60,11 +60,17 @@ export default defineConfig({
     server: {
       host: '0.0.0.0' /* 设置为0.0.0.0则所有的地址均能访问 */,
       port: 5173 /* 设置端口 */,
+    
       proxy: {
         '/api': {
           target: 'http://119.27.183.153:8080', // 后台服务器地址
-          changeOrigin: true /* 允许跨域 */,
-          rewrite: (path) => path.replace(/^\/api/, '')
+          changeOrigin: false /* 允许跨域 */,
+          secure:false,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+          bypass(req, res,options){
+            const proxyUrl = new URL(options.rewrite(req.url) || '', (options.target))?.href || '';
+            res.setHeader("x-req-proxyUrl",proxyUrl)
+          }
         }
       }
     }

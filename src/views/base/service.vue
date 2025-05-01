@@ -1,0 +1,500 @@
+<template>
+  <div class="service-container">
+    <div class="header">
+      <h2>家政服务管理</h2>
+      <div class="header-actions">
+        <el-button
+          type="danger"
+          :disabled="selectedRows.length === 0"
+          @click="handleBatchDelete"
+          >批量删除</el-button
+        >
+        <el-button type="primary" @click="handleAdd">新增服务</el-button>
+      </div>
+    </div>
+
+    <!-- 表格区域 -->
+    <el-table
+      :data="tableData"
+      border
+      style="width: 100%"
+      v-loading="loading"
+      fit
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="selection" width="55" />
+      <el-table-column prop="id" label="ID" min-width="80" />
+      <el-table-column prop="detail" label="服务描述说明" min-width="150" />
+      <el-table-column label="预估价格" min-width="120">
+        <template #default="scope">
+          <span>{{
+            scope.row.estimatedPrice
+              ? `￥${scope.row.estimatedPrice.toFixed(2)}`
+              : "-"
+          }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="原始价格" min-width="120">
+        <template #default="scope">
+          <span>{{
+            scope.row.realPrice ? `￥${scope.row.realPrice.toFixed(2)}` : "-"
+          }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="服务销量" min-width="120" prop="sales">
+      </el-table-column>
+      <el-table-column label="服务单位" min-width="120" prop="sku">
+      </el-table-column>
+      <el-table-column label="所属家政" min-width="150">
+        <template #default="scope">
+          <span>
+            <!-- todo -->
+            {{
+            scope.row.projectId ? `${scope.row.projectId}` : "-"
+          }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" min-width="170">
+        <template #default="scope">
+          {{ scope.row.createdTime ? formatDate(scope.row.createdTime) : "-" }}
+        </template>
+      </el-table-column>
+      <el-table-column label="更新时间" min-width="170">
+        <template #default="scope">
+          {{ scope.row.updatedTime ? formatDate(scope.row.updatedTime) : "-" }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" min-width="180" fixed="right">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="handleEdit(scope.row)"
+            >编辑</el-button
+          >
+          <el-button type="danger" size="small" @click="handleDelete(scope.row)"
+            >删除</el-button
+          >
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!-- 分页 -->
+    <div class="pagination">
+      <el-pagination
+        v-model:current-page="pageNo"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
+
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="dialogType === 'add' ? '新增增值服务' : '编辑增值服务'"
+      width="550px"
+      center
+    >
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
+        <el-form-item label="服务描述说明" prop="detail">
+          <el-input
+            v-model="form.detail"
+            placeholder="请输入增值服务名称"
+          />
+        </el-form-item>
+        <el-form-item label="预估价格" prop="estimatedPrice">
+          <el-input-number
+            v-model="form.estimatedPrice"
+            :min="0"
+            :precision="2"
+            :step="10"
+            style="width: 100%"
+            placeholder="请输入预估价格"
+          />
+        </el-form-item>
+        <el-form-item label="原始价格" prop="realPrice">
+          <el-input-number
+            v-model="form.realPrice"
+            :min="0"
+            :precision="2"
+            :step="10"
+            style="width: 100%"
+            placeholder="请输入原始价格"
+          />
+        </el-form-item>
+        <el-form-item label="服务单位" prop="sku">
+          <el-input
+            v-model="form.sku"
+            placeholder="请输入增值服务单位"
+          />
+        </el-form-item>
+        <el-form-item label="服务所属家政" prop="projectId">
+          <el-select
+            v-model="form.projectId"
+            placeholder="请选择所属家政"
+            style="width: 100%"
+        
+          >
+            <el-option
+              v-for="item in categoryOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitForm">确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 批量删除确认弹窗 -->
+    <el-dialog
+      v-model="batchDeleteDialogVisible"
+      title="批量删除确认"
+      width="400px"
+      center
+    >
+      <div class="batch-delete-confirm">
+        <el-icon class="warning-icon"><WarningFilled /></el-icon>
+        <p>确定要删除选中的 {{ selectedRows.length }} 个服务吗？</p>
+        <p class="warning-text">删除后将无法恢复，请谨慎操作！</p>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="batchDeleteDialogVisible = false">取消</el-button>
+          <el-button
+            type="danger"
+            @click="confirmBatchDelete"
+            :loading="batchDeleteLoading"
+          >
+            确认删除
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import * as api from "@/api/base.js";
+import { ref, reactive, onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { WarningFilled } from "@element-plus/icons-vue";
+import dayjs from "dayjs";
+// 分类选项
+const categoryOptions = [
+  { value: 1, label: '日常保洁' },
+  { value: 2, label: '深度清洁' },
+  { value: 3, label: '家电清洗' },
+  { value: 4, label: '厨卫保洁' },
+  { value: 5, label: '家居养护' },
+  { value: 6, label: '母婴护理' },
+  { value: 7, label: '老人照护' }
+];
+// 格式化日期函数
+const formatDate = (date) => {
+  return dayjs(date).format("YYYY/MM/DD HH:mm");
+};
+
+// 表格数据
+const tableData = ref([]);
+const loading = ref(false);
+const total = ref(0);
+const pageNo = ref(1);
+const pageSize = ref(10);
+
+// 选中行数据
+const selectedRows = ref([]);
+
+// 批量删除相关
+const batchDeleteDialogVisible = ref(false);
+const batchDeleteLoading = ref(false);
+
+// 弹窗相关
+const dialogVisible = ref(false);
+const dialogType = ref("add"); // 'add' 或 'edit'
+const formRef = ref(null);
+const form = reactive({
+  projectId: 0,
+  sku: "",
+  detail: "",
+  estimatedPrice: 0,
+});
+
+// 表单验证规则
+const rules = {
+  detail: [
+    { required: true, message: "请输入服务名称", trigger: "blur" },
+    { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
+  ],
+  estimatedPrice: [{ required: true, message: "请输入服务价格", trigger: "blur" }],
+  realPrice: [{ required: true, message: "请输入服务价格", trigger: "blur" }],
+  projectId: [{ required: true, message: "请选择所属家政", trigger: "blur" }],
+  sku: [
+    { required: true, message: "请输入服务单位", trigger: "blur" },  { min: 1, max: 10, message: "长度在 1 到 10 个字符之间", trigger: "blur" },
+  ],
+};
+
+// 加载表格数据
+const loadTableData = async () => {
+  loading.value = true;
+  selectedRows.value = []; // 重置选中的行
+  try {
+    const { data } = await api.getPriceServiceApi({ projectId: 1 });
+    // todo
+    // const data = [
+    //   {
+    //     id: 1,
+    //     createdTime: "2024-05-20T10:00:00Z",
+    //     updatedTime: "2024-05-20T10:00:00Z",
+    //     projectId: 1,
+    //     sku: "每小时",
+    //     detail: "深度清洁服务，按小时计费",
+    //     estimatedPrice: 80,
+    //     realPrice: 70,
+    //     sales: 5,
+    //   },
+    //   {
+    //     id: 2,
+    //     createdTime: "2024-05-21T10:00:00Z",
+    //     updatedTime: "2024-05-21T10:00:00Z",
+    //     projectId: 2,
+    //     sku: "每次",
+    //     detail: "日常保洁服务，每次收费",
+    //     estimatedPrice: 150,
+    //     realPrice: 130,
+    //     sales: 10,
+    //   },
+    //   {
+    //     id: 3,
+    //     createdTime: "2024-05-22T10:00:00Z",
+    //     updatedTime: "2024-05-22T10:00:00Z",
+    //     projectId: 3,
+    //     sku: "每台",
+    //     detail: "家电清洗服务，按设备台数计费",
+    //     estimatedPrice: 200,
+    //     realPrice: 180,
+    //     sales: 8,
+    //   },
+    //   {
+    //     id: 4,
+    //     createdTime: "2024-05-23T10:00:00Z",
+    //     updatedTime: "2024-05-23T10:00:00Z",
+    //     projectId: 4,
+    //     sku: "每天",
+    //     detail: "保姆服务，按天收费",
+    //     estimatedPrice: 300,
+    //     realPrice: 280,
+    //     sales: 12,
+    //   },
+    // ];
+
+    tableData.value = data || [];
+    // total.value = data.totalCount;
+  } catch (error) {
+    ElMessage.error(data?.message || "获取数据失败");
+  }
+  loading.value = false;
+};
+
+// 处理表格选择变化
+const handleSelectionChange = (selection) => {
+  selectedRows.value = selection;
+};
+
+// 页码变化
+const handleCurrentChange = (val) => {
+  pageNo.value = val;
+  loadTableData();
+};
+
+// 每页条数变化
+const handleSizeChange = (val) => {
+  pageSize.value = val;
+  loadTableData();
+};
+
+ 
+
+// 新增服务
+const handleAdd = () => {
+  dialogType.value = "add";
+  Object.assign(form, {
+    projectId: 0,
+    sku: "",
+    detail: "",
+    estimatedPrice: 0,
+    realPrice: 0,
+  });
+  dialogVisible.value = true;
+};
+
+// 编辑服务
+const handleEdit = (row) => {
+  dialogType.value = "edit";
+  Object.assign(form, row);
+
+  dialogVisible.value = true;
+};
+
+const initTable =()=>{
+  pageSize.value=10
+  pageNo.value=1
+    loadTableData();
+}
+// 删除服务
+const handleDelete = (row) => {
+  ElMessageBox.confirm(`确定要删除服务"${row.detail}"吗？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(async () => {
+     
+      try {
+        await api.delPriceServiceApi({ projectPriceIds: [row.id] });
+        initTable()
+       
+        ElMessage.success("删除成功");
+      } catch (error) {
+        ElMessage.error(error || "删除失败，请重试");
+      }
+    })
+    .catch(() => {
+      // 取消删除
+      ElMessage.error("删除失败，请重试");
+    });
+};
+
+// 批量删除
+const handleBatchDelete = () => {
+  if (selectedRows.value.length === 0) {
+    return;
+  }
+  batchDeleteDialogVisible.value = true;
+};
+
+// 确认批量删除
+const confirmBatchDelete = async () => {
+  batchDeleteLoading.value = true;
+
+  try {
+    // 获取所有选中行的ID
+    const selectedIds = selectedRows.value.map((item) => item.id);
+
+    await api.delPriceServiceApi({ projectPriceIds: selectedIds });
+    batchDeleteLoading.value = false;
+    batchDeleteDialogVisible.value = false;
+    selectedRows.value = [];
+
+    await loadTableData();
+    ElMessage.success(`成功删除${selectedIds.length}个服务`);
+  } catch (error) {
+    ElMessage.error(error || "删除失败，请重试");
+  }
+};
+
+// 提交表单
+const submitForm = () => {
+  if (!formRef.value) return;
+
+  formRef.value.validate((valid) => {
+    if (valid) {
+      submitFormFn();
+    }
+  });
+};
+
+const submitFormFn = async () => {
+  const newService = {
+    ...form,
+    projectId: form.projectId,
+    detail: form.detail,
+    sku: form.sku,
+    estimatedPrice: form.estimatedPrice,
+    realPrice: form.realPrice,
+  };
+ 
+  if (dialogType.value === "add") {
+    // 新增服务
+
+    try {
+      await api.addPriceServiceApi(newService);
+      initTable();
+      ElMessage.success("新增成功");
+    } catch (error) {
+      ElMessage.error(error || "新增失败，请重试");
+    }
+    tableData.value.unshift(newService);
+ 
+  } else {
+    // 编辑服务
+
+    try {
+      await api.editPriceServiceApi({ ...newService, id: form.id });
+      initTable();
+      ElMessage.success("编辑成功");
+    } catch (error) {
+      ElMessage.error(error || "新增失败，请重试");
+    }
+    dialogVisible.value = false;
+  }
+};
+// 页面加载时获取数据
+onMounted(() => {
+  loadTableData();
+});
+</script>
+
+<style scoped>
+.service-container {
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.batch-delete-confirm {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.warning-icon {
+  font-size: 48px;
+  color: #f56c6c;
+  margin-bottom: 15px;
+}
+
+.warning-text {
+  color: #f56c6c;
+  margin-top: 10px;
+  font-size: 12px;
+}
+</style>

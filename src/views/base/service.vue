@@ -108,7 +108,7 @@
             v-model="form.estimatedPrice"
             :min="0"
             :precision="2"
-            :step="10"
+            :step="1"
             style="width: 100%"
             placeholder="请输入预估价格"
           />
@@ -118,7 +118,7 @@
             v-model="form.realPrice"
             :min="0"
             :precision="2"
-            :step="10"
+            :step="1"
             style="width: 100%"
             placeholder="请输入原始价格"
           />
@@ -129,7 +129,7 @@
             placeholder="请输入增值服务单位"
           />
         </el-form-item>
-        <el-form-item label="服务所属家政" prop="projectId">
+        <el-form-item label="价格所属家政" prop="projectId">
           <el-select
             v-model="form.projectId"
             placeholder="请选择所属家政"
@@ -138,9 +138,9 @@
           >
             <el-option
               v-for="item in categoryOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              :key="item.id"
+              :label="item.title"
+              :value="item.id"
             />
           </el-select>
         </el-form-item>
@@ -189,15 +189,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { WarningFilled } from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 // 分类选项
-const categoryOptions = [
-  { value: 1, label: '日常保洁' },
-  { value: 2, label: '深度清洁' },
-  { value: 3, label: '家电清洗' },
-  { value: 4, label: '厨卫保洁' },
-  { value: 5, label: '家居养护' },
-  { value: 6, label: '母婴护理' },
-  { value: 7, label: '老人照护' }
-];
+let categoryOptions = reactive([]);
 // 格式化日期函数
 const formatDate = (date) => {
   return dayjs(date).format("YYYY/MM/DD HH:mm");
@@ -222,7 +214,7 @@ const dialogVisible = ref(false);
 const dialogType = ref("add"); // 'add' 或 'edit'
 const formRef = ref(null);
 const form = reactive({
-  projectId: 0,
+  projectId: null,
   sku: "",
   detail: "",
   estimatedPrice: 0,
@@ -327,7 +319,7 @@ const handleSizeChange = (val) => {
 const handleAdd = () => {
   dialogType.value = "add";
   Object.assign(form, {
-    projectId: 0,
+    projectId: null,
     sku: "",
     detail: "",
     estimatedPrice: 0,
@@ -421,7 +413,7 @@ const submitFormFn = async () => {
     estimatedPrice: form.estimatedPrice,
     realPrice: form.realPrice,
   };
- 
+ if(newService.realPrice<=newService.estimatedPrice) return      ElMessage.warning("预估价格不能大于原始价格");
   if (dialogType.value === "add") {
     // 新增服务
 
@@ -444,12 +436,22 @@ const submitFormFn = async () => {
     } catch (error) {
       ElMessage.error(error || "新增失败，请重试");
     }
+    initTable()
     dialogVisible.value = false;
   }
 };
+const loadProject = async () => {
+  try {
+    const { data } = await api.getAllProjecteApi();
+    categoryOptions = data ||[]
+  } catch (error) {
+    console.log("error", error);
+  }
+};
 // 页面加载时获取数据
-onMounted(() => {
-  loadTableData();
+onMounted(async () => {
+  await loadTableData();
+  await loadProject()
 });
 </script>
 

@@ -4,6 +4,11 @@ import { get, post, del, put } from "@/utils/methods.js";
 export const getClassListApi = (params) => {
   return get("/admin/category/queryPageList", params);
 };
+// 查询分类数据
+export const getAllClassListApi = (params) => {
+  return get("/admin/category/queryAllCategory", params);
+};
+
 
 // 新增分类
 export const addClassApi = (params) => {

@@ -53,12 +53,12 @@
       </el-table-column>
       <el-table-column label="创建时间" width="180">
         <template #default="scope">
-          {{ formatDate(scope.row.createdAt) }}
+          {{ scope.row.createdAt?formatDate(scope.row.createdAt):'-' }}
         </template>
       </el-table-column>
       <el-table-column label="更新时间" width="180">
         <template #default="scope">
-          {{ formatDate(scope.row.updatedAt) }}
+          {{ scope.row.updatedAt?formatDate(scope.row.updatedAt):'-' }}
         </template>
       </el-table-column>
       <el-table-column label="操作" width="180">
@@ -100,6 +100,9 @@
         <el-form-item label="启用状态" prop="isEnabled">
           <el-switch v-model="form.isEnabled" />
         </el-form-item>
+        <el-form-item label="是否推荐到首页" prop="isRecommend" label-width="120px">
+          <el-switch v-model="form.isRecommend" />
+        </el-form-item>
         <el-form-item label="分类层级" prop="level">
           <el-select
             v-model="form.level"
@@ -121,9 +124,9 @@
           >
             <el-option
               v-for="item in parentOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              :key="item.categoryId"
+              :label="item.categoryName"
+              :value="item.categoryId"
             />
           </el-select>
         </el-form-item>
@@ -233,18 +236,9 @@ const levelOptions = [
   { value: 2, label: "子类" },
 ];
 
-// todo
-const parentOptions = [
-  { value: 1, label: "日常保洁" },
-  { value: 2, label: "深度清洁" },
-  { value: 3, label: "家电清洗" },
-  { value: 4, label: "厨卫保洁" },
-  { value: 5, label: "家居养护" },
-  { value: 6, label: "母婴护理" },
-  { value: 7, label: "老人照护" },
-];
+let parentOptions = reactive([]);
 // 表格数据
-const tableData = ref([]);
+let tableData = ref([]);
 const loading = ref(false);
 const total = ref(0);
 const pageNo = ref(1);
@@ -268,6 +262,7 @@ const form = reactive({
   icon: "1",
   sortOrder: 0,
   isEnabled: true,
+  isRecommend:false
 });
 
 // 表单验证规则
@@ -293,122 +288,7 @@ const loadTableData = async () => {
       pageSize: pageSize.value,
       categoryName: searchValue.value,
     });
-    // todo
-    // const data = {
-    //   totalCount: 10,
-    //   dataList: [
-    //     {
-    //       categoryId: 1,
-    //       categoryName: "清洁服务",
-    //       parentId: 1,
-    //       level: 1,
-    //       icon: "1",
-    //       sortOrder: 1,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-20T10:00:00Z",
-    //       updatedAt: "2024-05-20T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 2,
-    //       categoryName: "家电维修",
-    //       parentId: 0,
-    //       level: 2,
-    //       icon: "2",
-    //       sortOrder: 2,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-21T10:00:00Z",
-    //       updatedAt: "2024-05-21T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 3,
-    //       categoryName: "保姆服务",
-    //       parentId: 0,
-    //       level: 1,
-    //       icon: "3",
-    //       sortOrder: 3,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-22T10:00:00Z",
-    //       updatedAt: "2024-05-22T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 4,
-    //       categoryName: "月嫂服务",
-    //       parentId: 0,
-    //       level: 1,
-    //       icon: "4",
-    //       sortOrder: 4,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-23T10:00:00Z",
-    //       updatedAt: "2024-05-23T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 5,
-    //       categoryName: "钟点工",
-    //       parentId: 0,
-    //       level: 1,
-    //       icon: "5",
-    //       sortOrder: 5,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-24T10:00:00Z",
-    //       updatedAt: "2024-05-24T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 6,
-    //       categoryName: "家庭保洁",
-    //       parentId: 1,
-    //       level: 2,
-    //       icon: "6",
-    //       sortOrder: 1,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-25T10:00:00Z",
-    //       updatedAt: "2024-05-25T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 7,
-    //       categoryName: "玻璃清洁",
-    //       parentId: 1,
-    //       level: 2,
-    //       icon: "7",
-    //       sortOrder: 2,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-26T10:00:00Z",
-    //       updatedAt: "2024-05-26T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 8,
-    //       categoryName: "家电清洗",
-    //       parentId: 1,
-    //       level: 2,
-    //       icon: "8",
-    //       sortOrder: 3,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-27T10:00:00Z",
-    //       updatedAt: "2024-05-27T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 9,
-    //       categoryName: "冰箱维修",
-    //       parentId: 2,
-    //       level: 2,
-    //       icon: "9",
-    //       sortOrder: 1,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-28T10:00:00Z",
-    //       updatedAt: "2024-05-28T10:00:00Z",
-    //     },
-    //     {
-    //       categoryId: 10,
-    //       categoryName: "洗衣机维修",
-    //       parentId: 2,
-    //       level: 2,
-    //       icon: "10",
-    //       sortOrder: 2,
-    //       isEnabled: true,
-    //       createdAt: "2024-05-29T10:00:00Z",
-    //       updatedAt: "2024-05-29T10:00:00Z",
-    //     },
-    //   ],
-    // };
+ 
     console.log("data", data);
 
     tableData.value = data.dataList || [];
@@ -416,7 +296,7 @@ const loadTableData = async () => {
     total.value = Number(data.totalCount);
   } catch (error) {
     loading.value = false;
-    ElMessage.error(data?.message || "获取数据失败");
+    ElMessage.error(error || "获取数据失败");
   }
   loading.value = false;
 };
@@ -427,9 +307,9 @@ const handleSelectionChange = (selection) => {
 };
 
 // 页码变化
-const handleCurrentChange = (val) => {
+const handleCurrentChange = async (val) => {
   pageNo.value = val;
-  loadTableData();
+  await loadTableData();
 };
 
 // 每页条数变化
@@ -448,6 +328,7 @@ const handleAdd = () => {
     icon: "1",
     sortOrder: 0,
     isEnabled: true,
+    isRecommend:false
   });
   dialogVisible.value = true;
 };
@@ -472,7 +353,7 @@ const handleDelete = (row) => {
   })
     .then(async () => {
       try {
-        await api.delClassApi({ categoryIdList: [row.categoryId] });
+        await api.delClassApi({ categoryIdList: [Number(row.categoryId)] });
 
         initTable();
         ElMessage.success("删除成功");
@@ -518,8 +399,9 @@ const submitFormFn = async () => {
     icon: form.icon,
     sortOrder: form.sortOrder,
     isEnabled: form.isEnabled,
+    isRecommend:form.isRecommend
   };
-  if (form.level === 2) newCategory.parentId = form.parentId;
+  if (form.level === 2) newCategory.parentId = Number(form.parentId);
   if (form?.categoryId) newCategory.categoryId = form.categoryId;
   if (dialogType.value === "add") {
     // 新增分类
@@ -541,6 +423,7 @@ const submitFormFn = async () => {
   }
 
   dialogVisible.value = false;
+  initTable()
 };
 // 提交表单
 const submitForm = async () => {
@@ -553,9 +436,18 @@ const submitForm = async () => {
   });
 };
 
+const loadClass = async () => {
+  try {
+    const { data } = await api.getAllClassListApi();
+    parentOptions = data.filter((item) => item.level === 1);
+  } catch (error) {
+    console.log("error", error);
+  }
+};
 // 页面加载时获取数据
-onMounted(() => {
-  loadTableData();
+onMounted(async () => {
+  await loadTableData();
+  await loadClass();
 });
 </script>
 

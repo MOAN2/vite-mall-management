@@ -1,4 +1,8 @@
 export const levelEnum = {
+  0: {
+    label: "-",
+    id: 0,
+  },
   1: {
     label: "主类",
     id: 1,

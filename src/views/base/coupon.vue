@@ -6,7 +6,7 @@
       </div>
   
       <!-- 表格区域 -->
-      <el-table :data="tableData" border style="width: 100%" v-loading="loading" fit>
+      <el-table stripe :data="tableData" border style="width: 100%" v-loading="loading" fit>
         <el-table-column prop="couponId" label="优惠券ID" min-width="100" />
         <el-table-column prop="couponName" label="优惠券名称" min-width="150" />
         <el-table-column label="发放状态" min-width="100">

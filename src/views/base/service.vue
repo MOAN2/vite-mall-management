@@ -1,7 +1,7 @@
 <template>
   <div class="service-container">
     <div class="header">
-      <h2>家政服务管理</h2>
+      <h2>家政服务价格管理</h2>
       <div class="header-actions">
         <el-button
           type="danger"
@@ -20,12 +20,13 @@
       style="width: 100%"
       v-loading="loading"
       fit
+      stripe
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="id" label="ID" min-width="80" />
-      <el-table-column prop="detail" label="服务描述说明" min-width="150" />
-      <el-table-column label="预估价格" min-width="120">
+      <el-table-column prop="id" label="ID" min-width="80" sortable/>
+      <el-table-column prop="detail" label="服务价格描述" min-width="150" />
+      <el-table-column label="预估价格" min-width="120"  >
         <template #default="scope">
           <span>{{
             scope.row.estimatedPrice
@@ -34,7 +35,7 @@
           }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="原始价格" min-width="120">
+      <el-table-column label="原始价格" min-width="120"  >
         <template #default="scope">
           <span>{{
             scope.row.realPrice ? `￥${scope.row.realPrice.toFixed(2)}` : "-"
@@ -48,13 +49,13 @@
       <el-table-column label="所属家政" min-width="150">
         <template #default="scope">
           <span>
-            <!-- todo -->
+     
             {{
-            scope.row.projectId ? `${scope.row.projectId}` : "-"
+            scope.row.projectId ? getProjectName(scope.row.projectId) : "-"
           }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" min-width="170">
+      <el-table-column label="创建时间" min-width="170" sortable>
         <template #default="scope">
           {{ scope.row.createdTime ? formatDate(scope.row.createdTime) : "-" }}
         </template>
@@ -92,7 +93,7 @@
     <!-- 新增/编辑弹窗 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增增值服务' : '编辑增值服务'"
+      :title="dialogType === 'add' ? '新增服务价格' : '编辑服务价格'"
       width="550px"
       center
     >
@@ -100,7 +101,7 @@
         <el-form-item label="服务描述说明" prop="detail">
           <el-input
             v-model="form.detail"
-            placeholder="请输入增值服务名称"
+            placeholder="请输入服务价格名称"
           />
         </el-form-item>
         <el-form-item label="预估价格" prop="estimatedPrice">
@@ -126,7 +127,7 @@
         <el-form-item label="服务单位" prop="sku">
           <el-input
             v-model="form.sku"
-            placeholder="请输入增值服务单位"
+            placeholder="请输入服务价格单位"
           />
         </el-form-item>
         <el-form-item label="价格所属家政" prop="projectId">
@@ -137,7 +138,7 @@
         
           >
             <el-option
-              v-for="item in categoryOptions"
+              v-for="item in projectOptions"
               :key="item.id"
               :label="item.title"
               :value="item.id"
@@ -189,7 +190,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { WarningFilled } from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 // 分类选项
-let categoryOptions = reactive([]);
+let projectOptions = reactive([]);
 // 格式化日期函数
 const formatDate = (date) => {
   return dayjs(date).format("YYYY/MM/DD HH:mm");
@@ -223,7 +224,7 @@ const form = reactive({
 // 表单验证规则
 const rules = {
   detail: [
-    { required: true, message: "请输入服务名称", trigger: "blur" },
+    { required: true, message: "请输入服务名称" },
     { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
   ],
   estimatedPrice: [{ required: true, message: "请输入服务价格", trigger: "blur" }],
@@ -234,63 +235,25 @@ const rules = {
   ],
 };
 
+const getProjectName = (id)=>{
+  const category = projectOptions.find(
+    (item) => item.id === id
+  );
+
+  return category ? category.title : "";
+}
 // 加载表格数据
 const loadTableData = async () => {
   loading.value = true;
   selectedRows.value = []; // 重置选中的行
   try {
-    const { data } = await api.getPriceServiceApi({ projectId: 1 });
-    // todo
-    // const data = [
-    //   {
-    //     id: 1,
-    //     createdTime: "2024-05-20T10:00:00Z",
-    //     updatedTime: "2024-05-20T10:00:00Z",
-    //     projectId: 1,
-    //     sku: "每小时",
-    //     detail: "深度清洁服务，按小时计费",
-    //     estimatedPrice: 80,
-    //     realPrice: 70,
-    //     sales: 5,
-    //   },
-    //   {
-    //     id: 2,
-    //     createdTime: "2024-05-21T10:00:00Z",
-    //     updatedTime: "2024-05-21T10:00:00Z",
-    //     projectId: 2,
-    //     sku: "每次",
-    //     detail: "日常保洁服务，每次收费",
-    //     estimatedPrice: 150,
-    //     realPrice: 130,
-    //     sales: 10,
-    //   },
-    //   {
-    //     id: 3,
-    //     createdTime: "2024-05-22T10:00:00Z",
-    //     updatedTime: "2024-05-22T10:00:00Z",
-    //     projectId: 3,
-    //     sku: "每台",
-    //     detail: "家电清洗服务，按设备台数计费",
-    //     estimatedPrice: 200,
-    //     realPrice: 180,
-    //     sales: 8,
-    //   },
-    //   {
-    //     id: 4,
-    //     createdTime: "2024-05-23T10:00:00Z",
-    //     updatedTime: "2024-05-23T10:00:00Z",
-    //     projectId: 4,
-    //     sku: "每天",
-    //     detail: "保姆服务，按天收费",
-    //     estimatedPrice: 300,
-    //     realPrice: 280,
-    //     sales: 12,
-    //   },
-    // ];
+    const { data } = await api.getPriceServiceApi({  pageNo: pageNo.value,
+      pageSize: pageSize.value, });
 
-    tableData.value = data || [];
-    // total.value = data.totalCount;
+    tableData.value = data?.dataList || [];
+    total.value = data?.totalCount || 0;
   } catch (error) {
+    loading.value = false;
     ElMessage.error(data?.message || "获取数据失败");
   }
   loading.value = false;
@@ -436,14 +399,15 @@ const submitFormFn = async () => {
     } catch (error) {
       ElMessage.error(error || "新增失败，请重试");
     }
-    initTable()
-    dialogVisible.value = false;
+   
   }
+  initTable()
+  dialogVisible.value = false;
 };
 const loadProject = async () => {
   try {
     const { data } = await api.getAllProjecteApi();
-    categoryOptions = data ||[]
+    projectOptions = data ||[]
   } catch (error) {
     console.log("error", error);
   }

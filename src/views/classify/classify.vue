@@ -25,6 +25,7 @@
     <el-table
       :data="tableData"
       border
+      stripe
       style="width: 100%"
       v-loading="loading"
       @selection-change="handleSelectionChange"
@@ -49,6 +50,11 @@
       <el-table-column label="启用状态" width="120">
         <template #default="scope">
           {{ scope.row.isEnabled ? "启动" : "停用" }}
+        </template>
+      </el-table-column>
+      <el-table-column label="是否推荐到首页" width="140">
+        <template #default="scope">
+          {{ scope.row.isRecommend ? "是" : "否" }}
         </template>
       </el-table-column>
       <el-table-column label="创建时间" width="180">

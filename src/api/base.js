@@ -51,7 +51,7 @@ export const editPriceServiceApi = (params) => {
 };
 //查询
 export const getPriceServiceApi = (params) => {
-  return get("/admin/project/price/queryList", params);
+  return get("/admin/project/price/pageQueryList", params);
 };
 //查询所有家政服务
 export const getAllProjecteApi = (params) => {

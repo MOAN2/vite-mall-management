@@ -7,6 +7,7 @@
 
     <!-- 表格区域 -->
     <el-table
+    stripe
       :data="iconOptions"
       border
       style="width: 100%"

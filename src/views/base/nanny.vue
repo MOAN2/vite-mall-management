@@ -14,6 +14,7 @@
 
     <!-- 表格区域 -->
     <el-table 
+    stripe
       :data="tableData" 
       border 
       style="width: 100%" 

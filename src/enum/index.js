@@ -4,7 +4,7 @@ export const levelEnum = {
     id: 0,
   },
   1: {
-    label: "主类",
+    label: "父类",
     id: 1,
   },
   2: {

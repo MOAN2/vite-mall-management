@@ -122,7 +122,7 @@
             collapse-tags-tooltip
           >
             <el-option
-              v-for="item in categoryOptions"
+              v-for="item in categorySonOptions"
               :key="item.categoryId"
               :label="item.categoryName"
               :value="item.categoryId"
@@ -243,6 +243,7 @@ const pageSize = ref(10);
 
 // 分类选项
 let categoryOptions = reactive([]);
+let categorySonOptions = reactive([])
 // 批量删除相关
 const batchDeleteDialogVisible = ref(false);
 const batchDeleteLoading = ref(false);
@@ -582,6 +583,7 @@ const loadClass = async () => {
   try {
     const { data } = await getAllClassListApi();
     categoryOptions = data || [];
+    categorySonOptions = data.filter(i => i.level === 2)
   } catch (error) {
     console.log("error", error);
   }

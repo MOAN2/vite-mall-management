@@ -3,9 +3,23 @@
     <div class="header">
       <h2>家政分类管理</h2>
       <div class="header-actions">
+        <el-select
+            v-model="selLevel"
+            placeholder="请选择分类层级"
+            style="width: 100%"
+         @change="loadTableData"
+
+          >
+            <el-option
+              v-for="item in levelOpts"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         <el-input
           v-model="searchValue"
-          style="width: 240px"
+          style="width: 360px"
           placeholder="请输入分类名称"
           :prefix-icon="Search"
           clearable
@@ -39,6 +53,15 @@
           {{ levelEnum[scope.row.level].label }}
         </template></el-table-column
       >
+      <el-table-column prop="parentId" label="所属父类" width="100">
+        <template #default="scope">
+          <view v-if="scope.row.parentId ==='0'">- </view>
+          <el-tag v-else class="category-tag" type="primary" effect="plain">
+            {{ getParentClassName(scope.row.parentId) }}
+          </el-tag>
+          
+        </template></el-table-column
+      >
       <el-table-column prop="icon" label="分类图标" width="100">
         <template #default="scope">
           <div v-if="scope.row.level === 1">
@@ -52,19 +75,19 @@
           {{ scope.row.isEnabled ? "启动" : "停用" }}
         </template>
       </el-table-column>
-      <el-table-column label="是否推荐到首页" width="140">
+      <el-table-column label="是否推荐到首页" width="150">
         <template #default="scope">
           {{ scope.row.isRecommend ? "是" : "否" }}
         </template>
       </el-table-column>
       <el-table-column label="创建时间" width="180">
         <template #default="scope">
-          {{ scope.row.createdAt?formatDate(scope.row.createdAt):'-' }}
+          {{ scope.row.createdAt ? formatDate(scope.row.createdAt) : "-" }}
         </template>
       </el-table-column>
       <el-table-column label="更新时间" width="180">
         <template #default="scope">
-          {{ scope.row.updatedAt?formatDate(scope.row.updatedAt):'-' }}
+          {{ scope.row.updatedAt ? formatDate(scope.row.updatedAt) : "-" }}
         </template>
       </el-table-column>
       <el-table-column label="操作" width="180">
@@ -106,7 +129,11 @@
         <el-form-item label="启用状态" prop="isEnabled">
           <el-switch v-model="form.isEnabled" />
         </el-form-item>
-        <el-form-item label="是否推荐到首页" prop="isRecommend" label-width="120px">
+        <el-form-item
+          label="是否推荐到首页"
+          prop="isRecommend"
+          label-width="120px"
+        >
           <el-switch v-model="form.isRecommend" />
         </el-form-item>
         <el-form-item label="分类层级" prop="level">
@@ -238,7 +265,7 @@ const formatDate = (date) => {
   return dayjs(date).format("YYYY/MM/DD HH:mm");
 };
 const levelOptions = [
-  { value: 1, label: "主类" },
+  { value: 1, label: "父类" },
   { value: 2, label: "子类" },
 ];
 
@@ -250,6 +277,14 @@ const total = ref(0);
 const pageNo = ref(1);
 const pageSize = ref(10);
 const searchValue = ref("");
+const selLevel = ref(1);
+const levelOpts = [{
+  value:1,
+  label:'父类'
+},{
+  value:2,
+  label:'子类'
+}]
 // 选中行数据
 const selectedRows = ref([]);
 
@@ -268,7 +303,7 @@ const form = reactive({
   icon: "1",
   sortOrder: 0,
   isEnabled: true,
-  isRecommend:false
+  isRecommend: false,
 });
 
 // 表单验证规则
@@ -293,8 +328,9 @@ const loadTableData = async () => {
       pageNo: pageNo.value,
       pageSize: pageSize.value,
       categoryName: searchValue.value,
+      level:selLevel.value
     });
- 
+
     console.log("data", data);
 
     tableData.value = data.dataList || [];
@@ -334,7 +370,7 @@ const handleAdd = () => {
     icon: "1",
     sortOrder: 0,
     isEnabled: true,
-    isRecommend:false
+    isRecommend: false,
   });
   dialogVisible.value = true;
 };
@@ -405,7 +441,7 @@ const submitFormFn = async () => {
     icon: form.icon,
     sortOrder: form.sortOrder,
     isEnabled: form.isEnabled,
-    isRecommend:form.isRecommend
+    isRecommend: form.isRecommend,
   };
   if (form.level === 2) newCategory.parentId = Number(form.parentId);
   if (form?.categoryId) newCategory.categoryId = form.categoryId;
@@ -429,7 +465,7 @@ const submitFormFn = async () => {
   }
 
   dialogVisible.value = false;
-  initTable()
+  initTable();
 };
 // 提交表单
 const submitForm = async () => {
@@ -450,10 +486,21 @@ const loadClass = async () => {
     console.log("error", error);
   }
 };
+
+const getParentClassName = (id) => {
+  
+  const item = parentOptions.find((el) => el.categoryId == id);
+  console.log('item',item,parentOptions,id);
+  
+  return item?item.categoryName : "";
+};
+
+ 
 // 页面加载时获取数据
 onMounted(async () => {
-  await loadTableData();
   await loadClass();
+  await loadTableData();
+
 });
 </script>
 

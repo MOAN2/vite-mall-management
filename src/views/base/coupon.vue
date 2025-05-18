@@ -2,41 +2,82 @@
     <div class="coupon-container">
       <div class="header">
         <h2>优惠券管理</h2>
+        <div class="header-actions">
+        <el-input
+          v-model="searchValue"
+          style="width: 240px"
+          placeholder="请输入优惠券名称"
+          :prefix-icon="Search"
+          clearable
+          @change="loadTableData"
+        />
+        <el-button
+          type="danger"
+          :disabled="selectedRows.length === 0"
+          @click="handleBatchDelete"
+          >批量删除</el-button
+        >
         <el-button type="primary" @click="handleAdd">新增优惠券</el-button>
+      </div>
+       
       </div>
   
       <!-- 表格区域 -->
       <el-table stripe :data="tableData" border style="width: 100%" v-loading="loading" fit>
-        <el-table-column prop="couponId" label="优惠券ID" min-width="100" />
-        <el-table-column prop="couponName" label="优惠券名称" min-width="150" />
+        <el-table-column prop="id" label="优惠券ID" min-width="100" />
+        <el-table-column prop="name" label="优惠券名称" min-width="150" />
         <el-table-column label="发放状态" min-width="100">
           <template #default="scope">
-            <el-tag :type="scope.row.issueStatus === 'issuing' ? 'success' : scope.row.issueStatus === 'ready' ? 'info' : 'warning'">
+            <el-tag :type="scope.row.type == 0 ?'primary': 'success'  ">
               {{ 
-                scope.row.issueStatus === 'issuing' ? '发放中' : 
-                scope.row.issueStatus === 'ready' ? '待发放' : 
-                scope.row.issueStatus === 'ended' ? '已结束' : '-'
+               scope.row.type == 0 ?'满减券': '折扣券'
               }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="库存" min-width="80">
+        <el-table-column label="面值" min-width="120"   >
           <template #default="scope">
-            <span>{{ scope.row.stock !== undefined ? scope.row.stock : '-' }}</span>
+            {{ scope.row.value }}元
           </template>
+        </el-table-column>
+          <el-table-column label="使用门槛" min-width="120"  >
+            <template #default="scope">
+            {{ scope.row.threshold }}元
+          </template>
+          </el-table-column>
+          <el-table-column label="有效期开始时间" min-width="170">
+          <template #default="scope">
+            {{ scope.row.startDate ? formatDate(scope.row.startDate) : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="有效期结束时间	" min-width="170">
+          <template #default="scope">
+            {{ scope.row.endDate ? formatDate(scope.row.endDate) : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="发放总量" min-width="80" prop="total" >
+          
+        </el-table-column>
+        <el-table-column label="剩余数量" min-width="80" prop="remaining" >
+          
         </el-table-column>
         <el-table-column label="启用状态" min-width="100">
           <template #default="scope">
             <el-switch
-              v-model="scope.row.isEnabled"
+              v-model="scope.row.status"
               @change="handleStatusChange(scope.row)"
-              :disabled="scope.row.issueStatus === 'ended'"
+    
             />
           </template>
         </el-table-column>
         <el-table-column label="创建时间" min-width="170">
           <template #default="scope">
-            {{ scope.row.createdAt ? formatDate(scope.row.createdAt) : '-' }}
+            {{ scope.row.createdTime ? formatDate(scope.row.createdTime) : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="更新时间" min-width="170">
+          <template #default="scope">
+            {{ scope.row.updatedTime ? formatDate(scope.row.updatedTime) : '-' }}
           </template>
         </el-table-column>
         <el-table-column label="操作" min-width="180" fixed="right">
@@ -69,42 +110,32 @@
       >
         <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
           <el-form-item label="优惠券名称" prop="couponName">
-            <el-input v-model="form.couponName" placeholder="请输入优惠券名称" />
+            <el-input v-model="form.name" placeholder="请输入优惠券名称" />
           </el-form-item>
-          <el-form-item label="发放状态" prop="issueStatus">
-            <el-select v-model="form.issueStatus" placeholder="请选择发放状态" style="width: 100%">
-              <el-option label="发放中" value="issuing" />
-              <el-option label="待发放" value="ready" />
-              <el-option label="已结束" value="ended" />
+          <el-form-item label="发放状态" prop="type">
+            <el-select v-model="form.type" placeholder="请选择优惠券类型" style="width: 100%">
+              <el-option label="满减券" :value="0" />
+              <el-option label="折扣券" :value="1" />
+       
             </el-select>
           </el-form-item>
-          <el-form-item label="库存" prop="stock">
-            <el-input-number v-model="form.stock" :min="0" :precision="0" style="width: 100%" placeholder="请输入库存数量" />
+          <el-form-item label="面值" prop="value">
+            <el-input-number v-model="form.value" :min="0.01"       :precision="2"  style="width: 100%" placeholder="请输入面值" />
+          </el-form-item>
+          <el-form-item label="使用门槛" prop="threshold">
+            <el-input-number v-model="form.threshold"  :min="0.01"       :precision="2" style="width: 100%" placeholder="请输入使用门槛" />
+          </el-form-item>
+          <el-form-item label="发放总量" prop="total">
+            <el-input-number v-model="form.total" :min="0" :precision="0" style="width: 100%" placeholder="请输入发放总量" />
+          </el-form-item>
+          <el-form-item label="剩余数量" prop="remaining">
+            <el-input-number v-model="form.remaining" :min="0" :precision="0" style="width: 100%" placeholder="请输入剩余数量" />
           </el-form-item>
           <el-form-item label="启用状态" prop="isEnabled">
             <el-switch v-model="form.isEnabled" :disabled="form.issueStatus === 'ended'" />
-            <span class="status-tip" v-if="form.issueStatus === 'ended'">已结束的优惠券不能启用</span>
+             
           </el-form-item>
-          <el-form-item label="优惠金额" prop="amount">
-            <el-input-number 
-              v-model="form.amount" 
-              :min="0.01" 
-              :precision="2" 
-              :step="1" 
-              style="width: 100%" 
-              placeholder="请输入优惠金额" 
-            />
-          </el-form-item>
-          <el-form-item label="使用门槛" prop="threshold">
-            <el-input-number 
-              v-model="form.threshold" 
-              :min="0" 
-              :precision="2" 
-              :step="10" 
-              style="width: 100%" 
-              placeholder="请输入使用门槛，0表示无门槛" 
-            />
-          </el-form-item>
+        
           <el-form-item label="有效期" required>
             <el-row :gutter="10">
               <el-col :span="12">
@@ -129,14 +160,7 @@
               </el-col>
             </el-row>
           </el-form-item>
-          <el-form-item label="使用说明" prop="instructions">
-            <el-input
-              v-model="form.instructions"
-              type="textarea"
-              :rows="3"
-              placeholder="请输入使用说明"
-            />
-          </el-form-item>
+   
         </el-form>
         <template #footer>
           <span class="dialog-footer">
@@ -146,6 +170,31 @@
         </template>
       </el-dialog>
     </div>
+      <!-- 批量删除确认弹窗 -->
+  <el-dialog
+    v-model="batchDeleteDialogVisible"
+    title="批量删除确认"
+    width="400px"
+    center
+  >
+    <div class="batch-delete-confirm">
+      <el-icon class="warning-icon"><WarningFilled /></el-icon>
+      <p>确定要删除选中的 {{ selectedRows.length }} 个分类吗？</p>
+      <p class="warning-text">删除后将无法恢复，请谨慎操作！</p>
+    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="batchDeleteDialogVisible = false">取消</el-button>
+        <el-button
+          type="danger"
+          @click="confirmBatchDelete"
+          :loading="batchDeleteLoading"
+        >
+          确认删除
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
   </template>
   
   <script setup>
@@ -164,7 +213,9 @@
   const total = ref(0);
   const currentPage = ref(1);
   const pageSize = ref(10);
-  
+  // 批量删除相关
+const batchDeleteDialogVisible = ref(false);
+const batchDeleteLoading = ref(false);
   // 弹窗相关
   const dialogVisible = ref(false);
   const dialogType = ref('add'); // 'add' 或 'edit'
@@ -181,7 +232,13 @@
     endDate: null,
     instructions: ''
   });
-  
+  const searchValue = ref("");
+  // 选中行数据
+const selectedRows = ref([]);
+// 处理表格选择变化
+const handleSelectionChange = (selection) => {
+  selectedRows.value = selection;
+};
   // 表单验证规则
   const rules = {
     couponName: [
@@ -204,87 +261,27 @@
       { type: 'date', required: true, message: '请选择结束日期', trigger: 'change' }
     ]
   };
-  
-  // 生成模拟数据
-  const generateMockData = (page, limit) => {
-    const mockData = [];
-    const offset = (page - 1) * limit;
-    const count = Math.min(limit, 100 - offset);
-    
-    const couponTypes = [
-      '满减券', '折扣券', '新人券', '会员券', '节日券', '活动券'
-    ];
-    
-    const issueStatuses = ['issuing', 'ready', 'ended'];
-    
-    for (let i = 0; i < count; i++) {
-      // 随机生成优惠券类型和金额
-      const couponType = couponTypes[Math.floor(Math.random() * couponTypes.length)];
-      const amount = Math.floor(Math.random() * 50) + 5; // 5-55元的优惠金额
-      const threshold = Math.random() > 0.3 ? Math.floor(amount * (Math.random() * 5 + 1)) : 0; // 70%概率有门槛
-      
-      // 随机生成有效期
-      const now = new Date();
-      const startDate = new Date(now.getTime() - Math.floor(Math.random() * 30) * 86400000);
-      const endDate = new Date(now.getTime() + Math.floor(Math.random() * 90) * 86400000);
-      
-      // 随机生成发放状态
-      const issueStatus = issueStatuses[Math.floor(Math.random() * issueStatuses.length)];
-      
-      // 根据发放状态决定库存和启用状态
-      let stock = Math.floor(Math.random() * 1000);
-      let isEnabled = Math.random() > 0.2; // 80%概率启用
-      
-      if (issueStatus === 'ended') {
-        stock = Math.floor(Math.random() * 10); // 已结束的优惠券库存较少
-        isEnabled = false; // 已结束的优惠券不能启用
-      }
-      
-      mockData.push({
-        couponId: `CPN${10000 + offset + i}`,
-        couponName: `${amount}元${couponType}${threshold > 0 ? `(满${threshold}元可用)` : ''}`,
-        issueStatus: issueStatus,
-        stock: stock,
-        isEnabled: isEnabled,
-        amount: amount,
-        threshold: threshold,
-        startDate: startDate,
-        endDate: endDate,
-        createdAt: new Date(startDate.getTime() - Math.floor(Math.random() * 10) * 86400000),
-        instructions: threshold > 0 
-          ? `使用说明：\n1. 订单满${threshold}元可使用\n2. 不可与其他优惠券叠加使用\n3. 有效期${dayjs(startDate).format('YYYY/MM/DD')}至${dayjs(endDate).format('YYYY/MM/DD')}`
-          : `使用说明：\n1. 无使用门槛\n2. 不可与其他优惠券叠加使用\n3. 有效期${dayjs(startDate).format('YYYY/MM/DD')}至${dayjs(endDate).format('YYYY/MM/DD')}`
-      });
-    }
-    
-    return {
-      code: 0,
-      message: '',
-      data: {
-        totalCount: 100,
-        pageNo: page,
-        pageSize: limit,
-        dataList: mockData
-      },
-      success: true
-    };
-  };
+ 
   
   // 加载表格数据
   const loadTableData = () => {
     loading.value = true;
-    
-    // 模拟接口请求
-    setTimeout(() => {
-      const res = generateMockData(currentPage.value, pageSize.value);
-      if (res.success) {
-        tableData.value = res.data.dataList;
-        total.value = res.data.totalCount;
-      } else {
-        ElMessage.error(res.message || '获取数据失败');
-      }
-      loading.value = false;
-    }, 500);
+    selectedRows.value = []; // 重置选中的行
+   
+  try {
+    const { data } = await api.getDiscountApi({
+      pageNo: pageNo.value,
+      pageSize: pageSize.value,
+      name: searchValue.value,
+    });
+
+    tableData.value = data.dataList || [];
+    total.value = data.totalCount;
+  } catch (error) {
+    loading.value = false;
+    ElMessage.error(error || "获取数据失败");
+  }
+  loading.value = false;
   };
   
   // 页码变化
@@ -301,14 +298,9 @@
   
   // 启用状态变更
   const handleStatusChange = (row) => {
-    if (row.issueStatus === 'ended') {
-      row.isEnabled = false;
-      ElMessage.warning('已结束的优惠券不能启用');
-      return;
-    }
-    
-    const statusText = row.isEnabled ? '启用' : '停用';
-    ElMessage.success(`优惠券"${row.couponName}"已${statusText}`);
+   
+    const statusText = row.status ? '启用' : '停用';
+    ElMessage.success(`优惠券"${row.name}"已${statusText}`);
   };
   
   // 新增优惠券
@@ -426,7 +418,32 @@
       }
     });
   };
-  
+  // 批量删除
+const handleBatchDelete = () => {
+  if (selectedRows.value.length === 0) {
+    return;
+  }
+  batchDeleteDialogVisible.value = true;
+};
+
+// 确认批量删除
+const confirmBatchDelete = async () => {
+  batchDeleteLoading.value = true;
+
+  try {
+    // 获取所有选中行的ID
+    const selectedIds = selectedRows.value.map((item) => item.id);
+    await api.id({ id: selectedIds });
+
+    batchDeleteLoading.value = false;
+    batchDeleteDialogVisible.value = false;
+    selectedRows.value = [];
+    initTable();
+    ElMessage.success(`成功删除${selectedIds.length}个广告`);
+  } catch (error) {
+    ElMessage.error(error || "删除失败，请重试");
+  }
+};
   // 页面加载时获取数据
   onMounted(() => {
     loadTableData();
@@ -437,7 +454,10 @@
   .coupon-container {
     padding: 20px;
   }
-  
+  .header-actions {
+  display: flex;
+  gap: 10px;
+}
   .header {
     display: flex;
     justify-content: space-between;

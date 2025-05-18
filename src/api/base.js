@@ -2,8 +2,6 @@ import { get, post, del, put } from "@/utils/methods.js";
 
 //文件上传
 export const addFileApi = (params) => {
-  console.log('--------',params);
-  
   // 创建FormData对象处理文件上传
   const formData = new FormData();
   
@@ -56,4 +54,43 @@ export const getPriceServiceApi = (params) => {
 //查询所有家政服务
 export const getAllProjecteApi = (params) => {
   return get("/admin/project/queryAllProjectList", params);
+};
+
+// 广告
+//删除
+export const deladApi = (params) => {
+  return del(`/admin/ads/delete/${params.id}`, params);
+};
+
+export const addadApi = (params) => {
+  return post("/admin/ads/add", params);
+};
+ 
+//编辑
+export const editadApi = (params) => {
+  return post("/admin/ads/edit", params);
+};
+//查询
+export const getadApi = (params) => {
+  return get("/admin/ads/pageQueryListt", params);
+};
+
+
+// 优惠券
+//删除
+export const delDiscountApi = (params) => {
+  return post(`/admin/coupon/delete`, params);
+};
+
+export const addDiscountApi = (params) => {
+  return post("/admin/coupon/add", params);
+};
+ 
+//编辑
+export const editDiscountApi = (params) => {
+  return post("/admin/coupon/edit", params);
+};
+//查询
+export const getDiscountApi = (params) => {
+  return get("/admin/coupon/pageQuery", params);
 };

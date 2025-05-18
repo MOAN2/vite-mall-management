@@ -381,10 +381,12 @@ const handleEdit = (row) => {
   Object.assign(form, row);
   dialogVisible.value = true;
 };
-const initTable = () => {
+const initTable =async() => {
   pageSize.value = 10;
   pageNo.value = 1;
-  loadTableData();
+  await loadClass();
+  await loadTableData();
+
 };
 // 删除分类
 const handleDelete = (row) => {

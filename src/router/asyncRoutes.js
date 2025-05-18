@@ -6,6 +6,9 @@ const order = () => import('@/views/order/order.vue')
 const coupon = () => import('@/views/base/coupon.vue')
 const service = () => import('@/views/base/service.vue')
 const icons = () => import('@/views/base/icons.vue')
+const additional = () => import('@/views/base/additional.vue')
+const users = () => import('@/views/base/users.vue')
+const ads = () => import('@/views/base/ads.vue')
 export const asyncRoutes = [
   {
     path: '/category',
@@ -22,7 +25,7 @@ export const asyncRoutes = [
         name: 'categoryIndex',
         component: category,
         meta: {
-          title: '家政'
+          title: '家政详情'
         }
       }
     ]
@@ -67,7 +70,7 @@ export const asyncRoutes = [
       }
     ]
   },
-  {
+    {
     path: '/base',
     name: 'base',
     component: routerBox,
@@ -83,6 +86,14 @@ export const asyncRoutes = [
         component: nanny,
         meta: {
           title: '家政保姆',
+        }
+      },
+      {
+        path: '/base/additional',
+        name: 'additional',
+        component: additional,
+        meta: {
+          title: '家政加购',
         }
       },
       {
@@ -109,6 +120,23 @@ export const asyncRoutes = [
           title: '分类图标',
         }
       },
+      {
+        path: '/base/users',
+        name: 'users',
+        component: users,
+        meta: {
+          title: '用户管理',
+        }
+      },
+      {
+        path: '/base/ads',
+        name: 'ads',
+        component: ads,
+        meta: {
+          title: '广告管理',
+        }
+      },
+   
     ]
   },
 ]

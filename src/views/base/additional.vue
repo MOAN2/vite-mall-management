@@ -1,7 +1,7 @@
 <template>
   <div class="service-container">
     <div class="header">
-      <h2>家政服务价格管理</h2>
+      <h2>家政加购项管理</h2>
       <div class="header-actions">
         <el-button
           type="danger"
@@ -9,7 +9,7 @@
           @click="handleBatchDelete"
           >批量删除</el-button
         >
-        <el-button type="primary" @click="handleAdd">新增服务</el-button>
+        <el-button type="primary" @click="handleAdd">新增</el-button>
       </div>
     </div>
 
@@ -25,7 +25,7 @@
     >
       <el-table-column type="selection" width="55" />
       <el-table-column prop="id" label="ID" min-width="80" sortable />
-      <el-table-column prop="detail" label="服务价格描述" min-width="150" />
+      <el-table-column prop="detail" label="加购项描述" min-width="150" />
       <el-table-column label="预估价格" min-width="120">
         <template #default="scope">
           <span>{{
@@ -42,10 +42,9 @@
           }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="服务销量" min-width="120" prop="sales">
+      <el-table-column label="加购项销量" min-width="120" prop="sales">
       </el-table-column>
-      <el-table-column label="服务单位" min-width="120" prop="sku">
-      </el-table-column>
+
       <el-table-column label="所属家政" min-width="150">
         <template #default="scope">
           <span>
@@ -93,13 +92,13 @@
     <!-- 新增/编辑弹窗 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增服务价格' : '编辑服务价格'"
+      :title="dialogType === 'add' ? '新增加购项' : '编辑加购项'"
       width="550px"
       center
     >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="服务描述说明" prop="detail">
-          <el-input v-model="form.detail" placeholder="请输入服务价格名称" />
+        <el-form-item label="加购项描述说明" prop="detail">
+          <el-input v-model="form.detail" placeholder="请输入加购项名称" />
         </el-form-item>
         <el-form-item label="预估价格" prop="estimatedPrice">
           <el-input-number
@@ -121,8 +120,8 @@
             placeholder="请输入原始价格"
           />
         </el-form-item>
-        <el-form-item label="服务单位" prop="sku">
-          <el-input v-model="form.sku" placeholder="请输入服务价格单位" />
+        <el-form-item label="加购项单位" prop="sku">
+          <el-input v-model="form.sku" placeholder="请输入加购项单位" />
         </el-form-item>
         <el-form-item label="价格所属家政" prop="projectId">
           <el-select
@@ -156,7 +155,7 @@
     >
       <div class="batch-delete-confirm">
         <el-icon class="warning-icon"><WarningFilled /></el-icon>
-        <p>确定要删除选中的 {{ selectedRows.length }} 个服务吗？</p>
+        <p>确定要删除选中的 {{ selectedRows.length }} 个加购项吗？</p>
         <p class="warning-text">删除后将无法恢复，请谨慎操作！</p>
       </div>
       <template #footer>
@@ -216,13 +215,14 @@ const form = reactive({
 // 表单验证规则
 const rules = {
   detail: [
-    { required: true, message: "请输入服务名称" },
+    { required: true, message: "请输入加购项名称" },
     { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
   ],
-  realPrice: [{ required: true, message: "请输入服务价格", trigger: "blur" }],
+
+  realPrice: [{ required: true, message: "请输入加购项", trigger: "blur" }],
   projectId: [{ required: true, message: "请选择所属家政", trigger: "blur" }],
   sku: [
-    { required: true, message: "请输入服务单位", trigger: "blur" },
+    { required: true, message: "请输入加购项单位", trigger: "blur" },
     { min: 1, max: 10, message: "长度在 1 到 10 个字符之间", trigger: "blur" },
   ],
 };
@@ -268,7 +268,7 @@ const handleSizeChange = (val) => {
   loadTableData();
 };
 
-// 新增服务
+// 新增加购项
 const handleAdd = () => {
   dialogType.value = "add";
   Object.assign(form, {
@@ -281,7 +281,7 @@ const handleAdd = () => {
   dialogVisible.value = true;
 };
 
-// 编辑服务
+// 编辑加购项
 const handleEdit = (row) => {
   dialogType.value = "edit";
   Object.assign(form, row);
@@ -294,9 +294,9 @@ const initTable = () => {
   pageNo.value = 1;
   loadTableData();
 };
-// 删除服务
+// 删除加购项
 const handleDelete = (row) => {
-  ElMessageBox.confirm(`确定要删除服务"${row.detail}"吗？`, "提示", {
+  ElMessageBox.confirm(`确定要删除加购项"${row.detail}"吗？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
@@ -339,7 +339,7 @@ const confirmBatchDelete = async () => {
     selectedRows.value = [];
 
     await loadTableData();
-    ElMessage.success(`成功删除${selectedIds.length}个服务`);
+    ElMessage.success(`成功删除${selectedIds.length}个加购项`);
   } catch (error) {
     ElMessage.error(error || "删除失败，请重试");
   }
@@ -371,7 +371,7 @@ const submitFormFn = async () => {
   )
     return ElMessage.warning("预估价格不能大于原始价格");
   if (dialogType.value === "add") {
-    // 新增服务
+    // 新增加购项
 
     try {
       await api.addPriceServiceApi(newService);
@@ -382,7 +382,7 @@ const submitFormFn = async () => {
     }
     tableData.value.unshift(newService);
   } else {
-    // 编辑服务
+    // 编辑加购项
 
     try {
       await api.editPriceServiceApi({ ...newService, id: form.id });

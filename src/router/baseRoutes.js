@@ -1,6 +1,7 @@
 import SimpleLayout from '@/Layout/SimpleLayout.vue'
 import NoAuth from '@/Layout/NoAuth.vue'
-
+const routerBox = () => import('@/Layout/routerBox.vue')
+const userinfo = () => import('@/views/base/userInfo.vue')
 export const baseRoutes = [
   {
     path: '/',
@@ -11,6 +12,22 @@ export const baseRoutes = [
     path: '/login',
     component: () => import('@/views/login/index.vue'),
     hidden: true
+  },
+  {
+    path: '/user',
+    component: routerBox,
+    hidden: true,
+    children: [
+      {
+        path: '/user/index',
+        name: 'userinfo',
+        component: userinfo,
+        meta: {
+          title: '个人信息',
+        }
+      },
+      
+    ]
   },
   {
     path: '/404',

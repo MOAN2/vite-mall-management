@@ -37,10 +37,10 @@
               <el-icon><i-ep-user /></el-icon>
               <span>个人信息</span>
             </el-dropdown-item>
-            <el-dropdown-item @click="handleSetting">
+            <!-- <el-dropdown-item @click="handleSetting">
               <el-icon><i-ep-setting /></el-icon>
               <span>系统设置</span>
-            </el-dropdown-item>
+            </el-dropdown-item> -->
             <el-dropdown-item divided @click="handleLogout">
               <el-icon><i-ep-switch-button /></el-icon>
               <span>退出登录</span>
@@ -61,7 +61,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 // 获取用户信息
-const userInfo = computed(() => userStore.getUserInfo)
+const userInfo = computed(() => userStore.fetchUserInfo())
 
 // 全屏切换
 const toggleFullScreen = () => {
@@ -77,6 +77,8 @@ const toggleFullScreen = () => {
 // 处理个人信息
 const handleEditProfile = () => {
   ElMessage.info('跳转到个人信息页')
+  router.push('/user/index')
+
 }
 
 // 处理系统设置

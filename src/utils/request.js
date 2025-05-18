@@ -21,11 +21,12 @@ request.interceptors.request.use(
         text: '正在加载中'
       })
     }
+ 
+    config.headers.Authorization = localStorage.getItem('token') 
     return config
   },
   (error) => {
     // do something with request error
-    console.log(error, 'ERROR11111') // for debug
     if (loadingServe) {
       loadingServe.close()
     }
@@ -56,7 +57,7 @@ request.interceptors.response.use(
   },
   (error) => {
     // Loading.close()
-    console.log('request Erro2222r:', error)
+ 
     if (loadingServe) {
       loadingServe.close()
     }

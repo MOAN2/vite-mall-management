@@ -361,9 +361,6 @@ const handleEdit = (row) => {
   } else {
     headImg.value = [];
   }
-
- 
-
   if (row.detailImgs && row.detailImgs.length > 0) {
     detailImgs.value = row.detailImgs.map((url, index) => ({
       name: `详情图${index + 1}`,
@@ -416,7 +413,7 @@ const handleDelete = (row) => {
 //   try {
 //     // 获取所有选中行的ID
 //     const selectedIds = selectedRows.value.map((item) => item.id);
-//     await api.id({ id: selectedIds });
+//     await api.deladApi({ id: selectedIds });
 
 //     batchDeleteLoading.value = false;
 //     batchDeleteDialogVisible.value = false;

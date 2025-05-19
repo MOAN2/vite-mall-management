@@ -30,7 +30,7 @@
         <template #default="scope">
           <span>{{
             scope.row.estimatedPrice
-              ? `￥${scope.row.estimatedPrice.toFixed(2)}`
+              ? `${scope.row.estimatedPrice.toFixed(2)}元`
               : "-"
           }}</span>
         </template>
@@ -38,7 +38,7 @@
       <el-table-column label="原始价格" min-width="120">
         <template #default="scope">
           <span>{{
-            scope.row.realPrice ? `￥${scope.row.realPrice.toFixed(2)}` : "-"
+            scope.row.realPrice ? `${scope.row.realPrice.toFixed(2)}元` : "-"
           }}</span>
         </template>
       </el-table-column>

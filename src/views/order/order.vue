@@ -26,7 +26,7 @@
       </el-table-column>
       <el-table-column label="订单价格" min-width="100">
         <template #default="scope">
-          <span>{{ scope.row.orderPrice ? `￥${scope.row.orderPrice.toFixed(2)}` : '-' }}</span>
+          <span>{{ scope.row.orderPrice ? `${scope.row.orderPrice.toFixed(2)}元` : '-' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="订单家政保姆" min-width="120">

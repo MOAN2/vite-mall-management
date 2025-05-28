@@ -81,7 +81,7 @@ export const asyncRoutes = [
         name: "nanny",
         component: nanny,
         meta: {
-          title: "家政保姆",
+          title: "家政保洁人员",
         },
       },
       {

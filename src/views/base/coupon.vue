@@ -113,7 +113,7 @@
       center
     >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="优惠券名称" prop="couponName">
+        <el-form-item label="优惠券名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入优惠券名称" />
         </el-form-item>
         <el-form-item label="发放状态" prop="type">
@@ -254,6 +254,7 @@ const form = reactive({
   endDate: "",
   total: 1,
   status: true,
+
 });
 const searchValue = ref("");
 // 选中行数据
@@ -306,33 +307,7 @@ const loadTableData = async () => {
       name: searchValue.value,
     });
 
-    tableData.value = data?.dataList || [{
-				"id": 1,
-				"createdTime": "",
-				"updatedTime": "",
-				"name": "测试 1",
-				"type": "1",
-				"value": 0,
-				"threshold": 0,
-				"startDate": "",
-				"endDate": "",
-				"total": 0,
-				"remaining": 0,
-				"status": true
-			},{
-				"id": 2,
-				"createdTime": "",
-				"updatedTime": "",
-				"name": "测试 2",
-				"type": "0",
-				"value": 0,
-				"threshold": 0,
-				"startDate": "",
-				"endDate": "",
-				"total": 110,
-				"remaining": 134130,
-				"status": false
-			}];
+    tableData.value = data?.dataList || [ ];
     total.value = data?.totalCount || 0;
  
   } catch (error) {

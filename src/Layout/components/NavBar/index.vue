@@ -16,14 +16,14 @@
           <el-icon class="icon-item"><icon-ep-bell /></el-icon>
         </el-badge>
       </div> -->
-      
+
       <!-- 全屏按钮 -->
       <div class="fullscreen" @click="toggleFullScreen">
         <el-tooltip content="全屏" placement="bottom">
           <el-icon class="icon-item"><i-ep-full-screen /></el-icon>
         </el-tooltip>
       </div>
-      
+
       <!-- 用户信息下拉菜单 -->
       <el-dropdown trigger="click" class="user-dropdown">
         <div class="user-info">
@@ -53,52 +53,57 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
 
-const router = useRouter()
-const userStore = useUserStore()
+const router = useRouter();
+const userStore = useUserStore();
 
+// 页面加载时获取数据
+onMounted(() => {
+  getUserInfo();
+});
 // 获取用户信息
-const userInfo = computed(() => userStore.fetchUserInfo())
+const userInfo = ref({});
 
+const getUserInfo = async () => {
+  userInfo.value = await userStore.fetchUserInfo();
+};
 // 全屏切换
 const toggleFullScreen = () => {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen()
+    document.documentElement.requestFullscreen();
   } else {
     if (document.exitFullscreen) {
-      document.exitFullscreen()
+      document.exitFullscreen();
     }
   }
-}
+};
 
 // 处理个人信息
 const handleEditProfile = () => {
-  ElMessage.info('跳转到个人信息页')
-  router.push('/user/index')
-
-}
+  router.push("/user/index");
+};
 
 // 处理系统设置
 const handleSetting = () => {
-  ElMessage.info('打开系统设置')
-}
+  ElMessage.info("打开系统设置");
+};
 
 // 处理退出登录
 const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    userStore.logout().then(() => {
-      ElMessage.success('退出登录成功')
+  ElMessageBox.confirm("确定要退出登录吗？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(async () => {
+      await userStore.logout() 
       router.push('/login')
     })
-  }).catch(() => {})
-}
+    .catch(() => {});
+};
 </script>
 
 <style lang="scss" scoped>
@@ -116,16 +121,16 @@ const handleLogout = () => {
   .navbar-left {
     display: flex;
     align-items: center;
-    
+
     .logo-container {
       display: flex;
       align-items: center;
-      
+
       .logo {
         height: 32px;
         margin-right: 12px;
       }
-      
+
       .title {
         font-size: 18px;
         font-weight: 600;
@@ -139,29 +144,30 @@ const handleLogout = () => {
   .navbar-right {
     display: flex;
     align-items: center;
-    
+
     .icon-item {
       font-size: 20px;
       color: #606266;
       cursor: pointer;
       padding: 0 12px;
       transition: color 0.3s;
-      
+
       &:hover {
-        color: #409EFF;
+        color: #409eff;
       }
     }
-    
-    .notification, .fullscreen {
+
+    .notification,
+    .fullscreen {
       display: flex;
       align-items: center;
       margin-right: 10px;
     }
-    
+
     .user-dropdown {
       margin-left: 10px;
       cursor: pointer;
-      
+
       .user-info {
         display: flex;
         align-items: center;
@@ -169,22 +175,22 @@ const handleLogout = () => {
         height: 50px;
         border-radius: 4px;
         transition: background-color 0.3s;
-        
+
         &:hover {
           background-color: #f5f7fa;
         }
-        
+
         .user-avatar {
           margin-right: 8px;
           border: 1px solid #eee;
         }
-        
+
         .user-name {
           font-size: 14px;
           color: #303133;
           margin-right: 4px;
         }
-        
+
         .dropdown-icon {
           font-size: 12px;
           color: #909399;

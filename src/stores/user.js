@@ -1,12 +1,13 @@
 import { defineStore } from "pinia";
-import { getUserInfoApi,logoutApi } from "@/api/login.js";
+import { getUserDetailApi,logoutApi,getUserInfoApi } from "@/api/login.js";
+ 
 export const useUserStore = defineStore("user", {
   // 状态
   state: () => ({
     token: "",
     userInfo: {
-      nickname: "",
-      avatar: "",
+      avatar:'',
+      username:'',
       id: 0,
     },
   }),
@@ -31,6 +32,7 @@ export const useUserStore = defineStore("user", {
     // 清除token
     clearToken() {
       this.token = "";
+      localStorage.removeItem('token');
     },
 
     // 设置用户信息
@@ -44,24 +46,45 @@ export const useUserStore = defineStore("user", {
         // 清除用户状态
         this.clearToken();
         this.setUserInfo({
-          nickname: "",
-          avatar: "",
           id: 0,
+          avatar:'',
+          username:'',
         });
+        ElMessage.success("退出登录成功");
+    return true
       } catch (error) {
         console.error("退出失败", error);
       }
+      return false
     },
 
     // 获取用户信息
     async fetchUserInfo() {
-      if (this.userInfo.id) {
+    
+      if (this.userInfo.id !== 0) {
         return this.userInfo;
       }
+  
+      
       try {
-        // 调用API获取用户信息
         const { data } = await getUserInfoApi();
-        this.setUserInfo(data);
+        // 调用API获取用户信息 todo
+        // const { data:info } = await getUserDetailApi({id:data.id});
+        const info = {
+          id: 1123,
+          username: "admin",
+          email: "test@example.com",
+          phone: "13800138000",
+          nickname: "测试用户",
+          avatar: "https://example.com/avatar.jpg",
+          status: true,
+          superAdmin: true,
+          createdTime: "2025-05-20T10:00:00Z",
+          updatedTime: "2025-05-28T15:00:00Z",
+        };
+        this.setUserInfo(info);
+   
+        
         // 返回用户信息
         return this.userInfo;
       } catch (error) {

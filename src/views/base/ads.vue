@@ -54,10 +54,10 @@
           {{ scope.row.status ? "是" : "否" }}
         </template>
       </el-table-column>
-      <el-table-column prop="headImg" label="广告主图" width="100">
+      <el-table-column prop="imageUrl" label="广告主图" width="100">
         <template #default="scope">
           <div>
-            <img :src="scope.row.headImg" width="36" height="36" />
+            <img :src="scope.row.imageUrl" width="36" height="36" />
           </div> </template
       ></el-table-column>
       <el-table-column label="创建时间" min-width="180">
@@ -110,9 +110,9 @@
         <el-form-item label="是否启用" prop="status" label-width="120px">
           <el-switch v-model="form.status" />
         </el-form-item>
-        <el-form-item label="广告主图" prop="headImg" class="re-label">
+        <el-form-item label="广告主图" prop="imageUrl" class="re-label">
           <el-upload
-            :file-list="headImg"
+            :file-list="imageUrl"
             :action="uploadUrl"
             list-type="picture-card"
             :limit="1"
@@ -121,7 +121,7 @@
             :on-remove="handleRemove"
             :auto-upload="true"
           >
-            <el-icon v-if="!headImg"><Plus /></el-icon>
+            <el-icon v-if="!imageUrl"><Plus /></el-icon>
           </el-upload>
           <div class="upload-tip">只能上传 1 张图片，图片不超过2MB</div>
         </el-form-item>
@@ -186,7 +186,7 @@ import { Plus } from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 import * as api from "@/api/base.js";
 import { beforeUpload } from "@/utils/common.js";
-import { getAllClassListApi } from "@/api/classify.js";
+ 
 // 格式化日期函数
 const formatDate = (date) => {
   return dayjs(date).format("YYYY/MM/DD HH:mm");
@@ -210,13 +210,13 @@ const searchValue = ref("");
 const dialogVisible = ref(false);
 const dialogType = ref("add"); // 'add' 或 'edit'
 const formRef = ref(null);
-const headImg = ref([]);
+const imageUrl = ref([]);
 const detailImgs = ref([]);
 const carousel = ref([]);
 const form = reactive({
   title: "",
   id: null,
-  headImg: "",
+  imageUrl: "",
   detailImgs: [],
   status: false,
 });
@@ -239,7 +239,7 @@ const handleSelectionChange = (selection) => {
 
 watch(dialogVisible, (newValue) => {
   if (!newValue) {
-    headImg.value = [];
+    imageUrl.value = [];
     detailImgs.value = [];
  
   }
@@ -249,7 +249,7 @@ watch(dialogVisible, (newValue) => {
 const handleUploadHead = (response, file) => {
   if (response && response.code === 200 && response.data) {
     // 替换headImg数据，确保只有广告器返回的图片
-    headImg.value = [
+    imageUrl.value = [
       {
         name: file.name,
         url: `${BASE_URL}${response.data}`,
@@ -284,7 +284,7 @@ const handleExceed = () => {
 
 // 处理文件移除
 const handleRemove = () => {
-  headImg.value = [];
+  imageUrl.value = [];
 };
 
  
@@ -338,7 +338,7 @@ const handleAdd = () => {
   Object.assign(form, {
     title: "",
   id: null,
-  headImg: "",
+  imageUrl: "",
   detailImgs: [],
   status: false,
   });
@@ -351,15 +351,15 @@ const handleEdit = (row) => {
   Object.assign(form, row);
 
   // 处理图片回显
-  if (row.headImg) {
-    headImg.value = [
+  if (row.imageUrl) {
+    imageUrl.value = [
       {
         name: "主图",
-        url: `${row.headImg}`,
+        url: `${row.imageUrl}`,
       },
     ];
   } else {
-    headImg.value = [];
+    imageUrl.value = [];
   }
   if (row.detailImgs && row.detailImgs.length > 0) {
     detailImgs.value = row.detailImgs.map((url, index) => ({
@@ -430,16 +430,16 @@ const submitForm = async () => {
 
   await formRef.value.validate((valid) => {
     if (valid) {
-      if (!headImg.value.length) return ElMessage.warning("主图不能为空");
+      if (!imageUrl.value.length) return ElMessage.warning("主图不能为空");
  
       // 处理提交前的数据格式转换
       const submitData = { ...form };
 
       // 处理头图
-      if (headImg.value && headImg.value.length > 0) {
-        submitData.headImg = headImg.value[0].url;
+      if (imageUrl.value && imageUrl.value.length > 0) {
+        submitData.imageUrl = imageUrl.value[0].url;
       } else {
-        submitData.headImg = "";
+        submitData.imageUrl = "";
       }
  
 

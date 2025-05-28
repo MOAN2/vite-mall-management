@@ -30,7 +30,7 @@ request.interceptors.request.use(
     if (loadingServe) {
       loadingServe.close()
     }
-    return Promise.reject(res)
+    return Promise.reject(error)
   }
 ) /*  */
 request.interceptors.response.use(
@@ -51,6 +51,11 @@ request.interceptors.response.use(
       router.push('/login')
     } else if ( res.code !== 200) {
       console.log('请求错误')
+      ElMessage({
+        message: res.message,
+        type: 'error',
+        duration: 1000
+      })
       return Promise.reject(res)  // 使用res变量而不是未定义的error
     }
     return Promise.resolve(res)
@@ -61,7 +66,7 @@ request.interceptors.response.use(
     if (loadingServe) {
       loadingServe.close()
     }
-    return Promise.reject(res)
+    return Promise.reject(error)
   }
 )
 export default request

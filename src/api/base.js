@@ -72,7 +72,7 @@ export const editadApi = (params) => {
 };
 //查询
 export const getadApi = (params) => {
-  return get("/admin/ads/pageQueryListt", params);
+  return get("/admin/ads/pageQueryList", params);
 };
 
 
@@ -93,4 +93,25 @@ export const editDiscountApi = (params) => {
 //查询
 export const getDiscountApi = (params) => {
   return get("/admin/coupon/pageQuery", params);
+};
+
+
+// 保洁人员
+//删除
+export const delNannyApi = (params) => {
+  return post(`/admin/nanny/delete`, params);
+};
+
+//新增
+export const addNannyApi = (params) => {
+  return post("/admin/nanny/add", params);
+};
+ 
+//编辑
+export const editNannyApi = (params) => {
+  return post("/admin/nanny/edit", params);
+};
+//查询
+export const getNannyApi = (params) => {
+  return get("/admin/nanny/pageQueryList", params);
 };

@@ -1,0 +1,19 @@
+{
+	"totalCount": 0,
+	"dataList": [
+		{
+			"id": 0,
+			"createdTime": "",
+			"updatedTime": "",
+			"name": "",
+			"age": 0,
+			"gender": 0,
+			"phone": "",
+			"experienceYears": 0,
+			"status": 0,
+			"rating": 0,
+			"isDeleted": 0,
+			"serviceTypes": ""
+		}
+	]
+}

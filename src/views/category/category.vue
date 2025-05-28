@@ -286,14 +286,7 @@ const form = reactive({
   basePrice:0
 });
 
-// 家政保姆选项
-const nannyOptions = [
-  { value: 1, label: "王阿姨（高级保姆）" },
-  { value: 2, label: "李阿姨（家庭保洁）" },
-  { value: 3, label: "张阿姨（育婴师）" },
-  { value: 4, label: "赵阿姨（养老护理）" },
-  { value: 5, label: "刘阿姨（月嫂）" },
-];
+ 
 // 选中行数据
 const selectedRows = ref([]);
 // 表单验证规则

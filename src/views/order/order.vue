@@ -29,7 +29,7 @@
           <span>{{ scope.row.orderPrice ? `${scope.row.orderPrice.toFixed(2)}元` : '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="订单家政保姆" min-width="120">
+      <el-table-column label="订单家政保洁人员" min-width="120">
         <template #default="scope">
           <span>{{ scope.row.nanny ? scope.row.nanny.name : '-' }}</span>
         </template>
@@ -147,9 +147,9 @@ const form = reactive({
   completionNote: ''
 });
 
-// 家政保姆列表
+// 家政保洁人员列表
 const nannyList = [
-  { id: 1, name: '王阿姨（高级保姆）' },
+  { id: 1, name: '王阿姨（高级保洁人员）' },
   { id: 2, name: '李阿姨（家庭保洁）' },
   { id: 3, name: '张阿姨（育婴师）' },
   { id: 4, name: '赵阿姨（养老护理）' },
@@ -186,7 +186,7 @@ const generateMockData = (page, limit) => {
       }
     }
     
-    // 随机选择一个家政保姆
+    // 随机选择一个家政保洁人员
     const nanny = nannyList[Math.floor(Math.random() * nannyList.length)];
     
     // 随机生成电话号码

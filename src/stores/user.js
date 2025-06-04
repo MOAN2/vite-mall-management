@@ -34,7 +34,11 @@ export const useUserStore = defineStore("user", {
       this.token = "";
       localStorage.removeItem('token');
     },
-
+    // 清除unseinfo
+    clearUserinfo() {
+      this.userInfo = {};
+      localStorage.removeItem('userInfo');
+    },
     // 设置用户信息
     setUserInfo(userInfo) {
       this.userInfo = userInfo;
@@ -45,11 +49,8 @@ export const useUserStore = defineStore("user", {
         await logoutApi();
         // 清除用户状态
         this.clearToken();
-        this.setUserInfo({
-          id: 0,
-          avatar:'',
-          username:'',
-        });
+        this.clearUserinfo()
+  
         ElMessage.success("退出登录成功");
     return true
       } catch (error) {
@@ -68,22 +69,10 @@ export const useUserStore = defineStore("user", {
       
       try {
         const { data } = await getUserInfoApi();
-        // 调用API获取用户信息 todo
-        // const { data:info } = await getUserDetailApi({id:data.id});
-        const info = {
-          id: 1123,
-          username: "admin",
-          email: "test@example.com",
-          phone: "13800138000",
-          nickname: "测试用户",
-          avatar: "https://example.com/avatar.jpg",
-          status: true,
-          superAdmin: true,
-          createdTime: "2025-05-20T10:00:00Z",
-          updatedTime: "2025-05-28T15:00:00Z",
-        };
+ 
+        const { data:info } = await getUserDetailApi({id:data.id});
+        localStorage.setItem("userInfo", info);
         this.setUserInfo(info);
-   
         
         // 返回用户信息
         return this.userInfo;

@@ -243,7 +243,7 @@ const loadTableData = async () => {
     });
 
     tableData.value = data?.dataList || [];
-    total.value = data?.totalCount || 0;
+    total.value = Number(data.totalCount) ||0;
   } catch (error) {
     loading.value = false;
     ElMessage.error(data?.message || "获取数据失败");
@@ -258,6 +258,7 @@ const handleSelectionChange = (selection) => {
 
 // 页码变化
 const handleCurrentChange = (val) => {
+  if (val === pageNo.value) return; // 如果页码没变，不重新加载
   pageNo.value = val;
   loadTableData();
 };

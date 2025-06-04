@@ -255,7 +255,7 @@ const loadTableData = async () => {
       nickname: searchValue.value,
     });
     tableData.value = data?.dataList || [];
-    total.value = data.totalCount;
+    total.value = Number(data.totalCount) ||0;
   } catch (error) {
     ElMessage.error(error || "获取数据失败");
   }

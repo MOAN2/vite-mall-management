@@ -31,20 +31,19 @@
       fit
       @selection-change="handleSelectionChange"
     >
-    <el-table-column type="selection" width="55" />
+      <el-table-column type="selection" width="55" />
       <el-table-column prop="id" label="优惠券ID" min-width="100" />
       <el-table-column prop="name" label="优惠券名称" min-width="150" />
       <el-table-column label="启用状态" min-width="100">
         <template #default="scope">
-          <el-switch
-            v-model="scope.row.status"
-            @change="handleStatusChange(scope.row)"
-          />
+          <el-tag :type="scope.row.status ? 'success' : 'error'">
+            {{ scope.row.status ? "启动" : "禁用" }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="优惠券类型" min-width="100">
         <template #default="scope">
-          <el-tag :type="scope.row.type == 0 ? 'primary' : 'success'">
+          <el-tag :type="scope.row.type == 0 ? 'primary' : 'warning'">
             {{ scope.row.type == 0 ? "满减券" : "折扣券" }}
           </el-tag>
         </template>
@@ -65,11 +64,16 @@
           {{ scope.row.endDate ? formatDate(scope.row.endDate) : "-" }}
         </template>
       </el-table-column>
-      <el-table-column label="发放总量" min-width="120" prop="total"  >
+      <el-table-column label="领取截止时间" min-width="170">
+        <template #default="scope">
+          {{ scope.row.deadline ? formatDate(scope.row.deadline) : "-" }}
+        </template>
       </el-table-column>
-      <el-table-column label="剩余数量" min-width="120" prop="remaining"  >
+      <el-table-column label="发放总量" min-width="120" prop="total">
       </el-table-column>
-     
+      <el-table-column label="剩余数量" min-width="120" prop="remaining">
+      </el-table-column>
+
       <el-table-column label="创建时间" min-width="170">
         <template #default="scope">
           {{ scope.row.createdTime ? formatDate(scope.row.createdTime) : "-" }}
@@ -122,8 +126,8 @@
             placeholder="请选择优惠券类型"
             style="width: 100%"
           >
-            <el-option label="满减券" :value="0" />
-            <el-option label="折扣券" :value="1" />
+            <el-option label="满减券" value="0" />
+            <el-option label="折扣券" value="1" />
           </el-select>
         </el-form-item>
         <el-form-item label="面值" prop="value">
@@ -154,11 +158,8 @@
           />
         </el-form-item>
 
-        <el-form-item label="启用状态" prop="isEnabled">
-          <el-switch
-            v-model="form.isEnabled"
-            :disabled="form.issueStatus === 'ended'"
-          />
+        <el-form-item label="启用状态" prop="status">
+          <el-switch v-model="form.status" />
         </el-form-item>
 
         <el-form-item label="有效期" required>
@@ -184,6 +185,19 @@
               </el-form-item>
             </el-col>
           </el-row>
+        </el-form-item>
+        <el-form-item
+          label="领取截止时间"
+          required
+          prop="deadline"
+          label-width="110px"
+        >
+          <el-date-picker
+            v-model="form.deadline"
+            type="date"
+            placeholder="领取截止时间"
+            style="width: 100%"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -254,7 +268,7 @@ const form = reactive({
   endDate: "",
   total: 1,
   status: true,
-
+  deadline: "",
 });
 const searchValue = ref("");
 // 选中行数据
@@ -292,6 +306,14 @@ const rules = {
       trigger: "change",
     },
   ],
+  deadline: [
+    {
+      type: "date",
+      required: true,
+      message: "请选择截止日期",
+      trigger: "change",
+    },
+  ],
 };
 
 // 加载表格数据
@@ -300,18 +322,15 @@ const loadTableData = async () => {
   selectedRows.value = []; // 重置选中的行
 
   try {
- 
     const { data } = await api.getDiscountApi({
       pageNo: pageNo.value,
       pageSize: pageSize.value,
       name: searchValue.value,
     });
 
-    tableData.value = data?.dataList || [ ];
-    total.value = data?.totalCount || 0;
- 
+    tableData.value = data?.dataList || [];
+    total.value = Number(data.totalCount) ||0;
   } catch (error) {
- 
     loading.value = false;
     ElMessage.error(error || "获取数据失败");
   }
@@ -320,6 +339,7 @@ const loadTableData = async () => {
 
 // 页码变化
 const handleCurrentChange = (val) => {
+  if (val === pageNo.value) return; // 如果页码没变，不重新加载
   pageNo.value = val;
   loadTableData();
 };
@@ -330,11 +350,7 @@ const handleSizeChange = (val) => {
   loadTableData();
 };
 
-// 启用状态变更
-const handleStatusChange = (row) => {
-  const statusText = row.status ? "启用" : "停用";
-  ElMessage.success(`优惠券"${row.name}"已${statusText}`);
-};
+ 
 
 // 新增优惠券
 const handleAdd = () => {
@@ -342,7 +358,7 @@ const handleAdd = () => {
   const now = new Date();
   Object.assign(form, {
     id: 0,
-
+    deadline: "",
     name: "",
     type: "",
     value: 0,
@@ -368,6 +384,7 @@ const handleEdit = (row) => {
     endDate: row.endDate,
     total: row.total,
     status: row.status,
+    deadline: row.deadline,
   });
   dialogVisible.value = true;
 };

@@ -22,7 +22,7 @@ request.interceptors.request.use(
       })
     }
  
-    config.headers.Authorization = localStorage.getItem('token') 
+    config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
     return config
   },
   (error) => {

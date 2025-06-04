@@ -55,7 +55,7 @@
       </el-table-column>
       <el-table-column label="工作状态" min-width="100">
         <template #default="scope">
-          <el-tag :type="scope.row.status === 0 ? 'info' : 'success'">
+          <el-tag :type="scope.row.status === 0 ? 'success' : 'primary'">
             {{ scope.row.status === 0 ? '空闲' : '工作中' }}
           </el-tag>
         </template>
@@ -134,7 +134,7 @@
           <el-input-number v-model="form.age" :min="18" :max="65" />
         </el-form-item>
         <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="form.phone" placeholder="请输入联系电话" />
+          <el-input v-model="form.phone" placeholder="请输入联系电话" :maxlength="11"/>
         </el-form-item>
         <el-form-item label="工作年限" prop="experienceYears">
           <el-input-number v-model="form.experienceYears" :min="0" :max="50" />
@@ -252,7 +252,7 @@ const rules = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' },{
       pattern: /^1[3-9]\d{9}$/,
-      message: "请输入正确的手机号",
+      message: "请输入11位正确的手机号",
       trigger: "blur",
     },],
   serviceTypeIds: [{ required: true, message: '请选择服务分类', trigger: 'change' },

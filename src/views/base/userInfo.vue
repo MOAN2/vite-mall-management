@@ -12,6 +12,7 @@
         label-width="100px"
         class="user-form"
       >
+
         <el-form-item class="avatar-container" label="头像">
           <el-upload
             class="avatar-uploader"
@@ -21,9 +22,13 @@
             :on-success="handleUploadHead"
             :on-remove="handleRemove"
             :action="uploadUrl"
+ 
+        accept="image/*"
           >
+         
+
             <img v-if="form.avatar" :src="form.avatar" class="avatar" />
-            <el-icon v-else><Plus /></el-icon>
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
 
@@ -40,31 +45,21 @@
         </el-form-item>
 
         <el-form-item label="手机号" prop="phone">
-          <el-input v-model="form.phone" :maxlength="11"/>
+          <el-input v-model="form.phone" :maxlength="11" />
         </el-form-item>
 
         <el-form-item label="超级管理员" prop="superAdmin">
-          <el-select
-            v-model="form.superAdmin"
-            disabled
-            style="width: 100%"
-          >
+          <el-select v-model="form.superAdmin" disabled style="width: 100%">
             <el-option label="是" :value="true" />
             <el-option label="否" :value="false" />
           </el-select>
-          
         </el-form-item>
 
         <el-form-item label="启用状态" prop="status">
-          <el-select
-            v-model="form.status"
-            disabled
-            style="width: 100%"
-          >
+          <el-select v-model="form.status" disabled style="width: 100%">
             <el-option label="启动" :value="true" />
             <el-option label="禁用" :value="false" />
           </el-select>
-          
         </el-form-item>
 
         <el-form-item>
@@ -84,7 +79,6 @@
         :rules="passwordRules"
         label-width="100px"
       >
-     
         <el-form-item label="新密码" prop="newPassword">
           <el-input
             v-model="passwordForm.newPassword"
@@ -120,6 +114,7 @@ import {
   changePasswordApi,
   getUserDetailApi,
 } from "@/api/login";
+import { beforeUpload } from "@/utils/common.js";
 const BASE_URL = import.meta.env.VITE_URL;
 let uploadUrl = `/api/admin/file/upload`;
 const userStore = useUserStore();
@@ -135,11 +130,11 @@ let form = reactive({
   phone: "",
   avatar: "",
   superAdmin: false,
+  status:true
 });
 
 // 密码表单数据
 const passwordForm = reactive({
-  
   newPassword: "",
   confirmPassword: "",
 });
@@ -151,8 +146,8 @@ const rules = {
     { min: 3, max: 10, message: "长度在 3 到 10 个字符", trigger: "blur" },
   ],
   email: [
-    { required: true, message: "请输入邮箱" , trigger: "blur"  },
- {type:'email',trigger: "blur" ,message: "请输入正确的邮箱" }
+    { required: true, message: "请输入邮箱", trigger: "blur" },
+    { type: "email", trigger: "blur", message: "请输入正确的邮箱" },
   ],
   phone: [
     { required: true, message: "请输入手机号", trigger: "blur" },
@@ -166,7 +161,6 @@ const rules = {
 
 // 密码表单验证规则
 const passwordRules = {
- 
   newPassword: [
     { required: true, message: "请输入密码", trigger: "blur" },
     {
@@ -193,43 +187,28 @@ const passwordRules = {
 
 // 获取用户信息
 const getUserInfo = async () => {
-
   const loading = ElLoading.service();
   try {
- 
-    
-    const data =await  userStore.fetchUserInfo()
-   console.log('data',data);
-   
+    const data = await userStore.fetchUserInfo();
+    console.log("data", data);
+
     if (data) {
-  
-      form.id=data.id
-      form.username=data.username
-      form.email=data.email
-      form.avatar=data.avatar
-      form.phone=data.phone
-      form.nickname=data.nickname
-      form.superAdmin=data.superAdmin
-      form.status=data.status
+      form.id = data.id;
+      form.username = data.username;
+      form.email = data.email;
+      form.avatar = data.avatar;
+      form.phone = data.phone;
+      form.nickname = data.nickname;
+      form.superAdmin = data?.superAdmin ||false;
+      form.status = data?.status || true;
     }
- 
-    
   } catch (error) {
-    console.log('e',error);
-    
+    console.log("e", error);
   }
   loading.close();
 };
 
-// 图片上传前验证
-const beforeUpload = (file) => {
-  const isLt2M = file.size / 1024 / 1024 < 2;
-  if (!isLt2M) {
-    ElMessage.error("图片大小不能超过 2MB!");
-    return false;
-  }
-  return true;
-};
+ 
 // 处理主图文件上传
 const handleUploadHead = (response, file) => {
   if (response && response.code === 200 && response.data) {
@@ -239,12 +218,12 @@ const handleUploadHead = (response, file) => {
 };
 // 处理文件移除
 const handleRemove = async () => {
-  headImg.value = [];
+  form.avatar=''
 };
 // 显示修改密码对话框
 const showPasswordDialog = () => {
   passwordDialogVisible.value = true;
- 
+
   passwordForm.newPassword = "";
   passwordForm.confirmPassword = "";
 };
@@ -256,9 +235,8 @@ const submitPasswordForm = async () => {
   await passwordFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-       
-        const {  newPassword } = passwordForm;
-        const res = await changePasswordApi({  newPassword ,userId:form.id,});
+        const { newPassword } = passwordForm;
+        const res = await changePasswordApi({ newPassword, userId: form.id });
         if (res.code === 0) {
           ElMessage.success("密码修改成功");
           passwordDialogVisible.value = false;
@@ -280,18 +258,16 @@ const submitForm = async () => {
     if (valid) {
       try {
         const res = await updateUserInfoApi({
-        ...form
+          ...form,
         });
 
- 
-          await userStore.setUserInfo({
-            ...userStore.userInfo,
-           ...form
-          });
-          ElMessage.success("保存成功");
-    
+        await userStore.setUserInfo({
+          ...userStore.userInfo,
+          ...form,
+        });
+        ElMessage.success("保存成功");
       } catch (error) {
-        ElMessage.error(error|| "保存失败");
+        ElMessage.error(error || "保存失败");
       }
     }
   });
@@ -327,38 +303,30 @@ onMounted(() => {
   display: flex;
   justify-content: center;
 }
-
-.avatar-uploader {
-  text-align: center;
-}
-
-.avatar-uploader .avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.avatar-uploader .el-upload {
+::v-deep(.avatar-uploader .el-upload ) {
   border: 1px dashed var(--el-border-color);
-  border-radius: 50%;
+  border-radius: 6px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: var(--el-transition-duration-fast);
 }
+ 
 
-.avatar-uploader .el-upload:hover {
+::v-deep(.avatar-uploader .el-upload:hover) {
   border-color: var(--el-color-primary);
 }
 
-.avatar-uploader-icon {
+.el-icon.avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 100px;
-  height: 100px;
+  width: 178px;
+  height: 178px;
   text-align: center;
-  border-radius: 50%;
-  line-height: 100px;
+}
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
 }
 </style>

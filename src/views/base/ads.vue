@@ -51,7 +51,10 @@
       </el-table-column> -->
       <el-table-column label="是否启用" width="140">
         <template #default="scope">
-          {{ scope.row.status ? "是" : "否" }}
+          <el-tag :type="scope.row.status ? 'success' : 'error'">
+            {{ scope.row.status ? "启动" : "禁用" }}
+          </el-tag>
+ 
         </template>
       </el-table-column>
       <el-table-column prop="imageUrl" label="广告主图" width="100">
@@ -110,18 +113,23 @@
         <el-form-item label="是否启用" prop="status" label-width="120px">
           <el-switch v-model="form.status" />
         </el-form-item>
+ 
         <el-form-item label="广告主图" prop="imageUrl" class="re-label">
           <el-upload
             :file-list="imageUrl"
             :action="uploadUrl"
-            list-type="picture-card"
+            class="avatar-uploader"
+            :show-file-list="false"
             :limit="1"
             :before-upload="beforeUpload"
             :on-success="handleUploadHead"
             :on-remove="handleRemove"
             :auto-upload="true"
+        accept="image/*"
           >
-            <el-icon v-if="!imageUrl"><Plus /></el-icon>
+          <img v-if="imageUrl.length" :src="imageUrl[0].url" class="avatar" />
+          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+    
           </el-upload>
           <div class="upload-tip">只能上传 1 张图片，图片不超过2MB</div>
         </el-form-item>
@@ -186,7 +194,7 @@ import { Plus } from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 import * as api from "@/api/base.js";
 import { beforeUpload } from "@/utils/common.js";
- 
+
 // 格式化日期函数
 const formatDate = (date) => {
   return dayjs(date).format("YYYY/MM/DD HH:mm");
@@ -200,11 +208,10 @@ const total = ref(0);
 const pageNo = ref(1);
 const pageSize = ref(10);
 
- 
 // 批量删除相关
 const batchDeleteDialogVisible = ref(false);
 const batchDeleteLoading = ref(false);
- 
+
 const searchValue = ref("");
 // 弹窗相关
 const dialogVisible = ref(false);
@@ -221,7 +228,6 @@ const form = reactive({
   status: false,
 });
 
- 
 // 选中行数据
 const selectedRows = ref([]);
 // 表单验证规则
@@ -230,7 +236,6 @@ const rules = {
     { required: true, message: "请输入广告名称", trigger: "blur" },
     { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
   ],
-   
 };
 // 处理表格选择变化
 const handleSelectionChange = (selection) => {
@@ -238,10 +243,10 @@ const handleSelectionChange = (selection) => {
 };
 
 watch(dialogVisible, (newValue) => {
+  console.log(newValue)
   if (!newValue) {
     imageUrl.value = [];
     detailImgs.value = [];
- 
   }
 });
 
@@ -257,8 +262,6 @@ const handleUploadHead = (response, file) => {
     ];
   }
 };
-
- 
 
 // 处理详情图文件上传
 const handleUploadD = (response, file) => {
@@ -287,8 +290,6 @@ const handleRemove = () => {
   imageUrl.value = [];
 };
 
- 
-
 // 处理详情图文件移除
 const handleRemoveD = (file) => {
   const index = detailImgs.value.findIndex((item) => item.url === file.url);
@@ -310,7 +311,7 @@ const loadTableData = async () => {
     });
 
     tableData.value = data.dataList || [];
-    total.value = data.totalCount;
+    total.value = Number(data.totalCount);
   } catch (error) {
     loading.value = false;
     ElMessage.error(error || "获取数据失败");
@@ -337,10 +338,10 @@ const handleAdd = () => {
 
   Object.assign(form, {
     title: "",
-  id: null,
-  imageUrl: "",
-  detailImgs: [],
-  status: false,
+    id: null,
+    imageUrl: "",
+    detailImgs: [],
+    status: false,
   });
   dialogVisible.value = true;
 };
@@ -431,7 +432,7 @@ const submitForm = async () => {
   await formRef.value.validate((valid) => {
     if (valid) {
       if (!imageUrl.value.length) return ElMessage.warning("主图不能为空");
- 
+
       // 处理提交前的数据格式转换
       const submitData = { ...form };
 
@@ -441,7 +442,6 @@ const submitForm = async () => {
       } else {
         submitData.imageUrl = "";
       }
- 
 
       // 处理详情图
       if (detailImgs.value && detailImgs.value.length > 0) {
@@ -476,7 +476,6 @@ const submitForm = async () => {
   });
 };
 
- 
 // 页面加载时获取数据
 onMounted(async () => {
   await loadTableData();
@@ -531,5 +530,30 @@ onMounted(async () => {
   font-size: 12px;
   color: #999;
   margin-left: 10px;
+}
+::v-deep(.avatar-uploader .el-upload) {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+::v-deep(.avatar-uploader .el-upload:hover) {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
+}
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
 }
 </style>

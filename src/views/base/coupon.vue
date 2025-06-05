@@ -43,13 +43,16 @@
       </el-table-column>
       <el-table-column label="优惠券类型" min-width="100">
         <template #default="scope">
-          <el-tag :type="scope.row.type == 0 ? 'primary' : 'warning'">
-            {{ scope.row.type == 0 ? "满减券" : "折扣券" }}
+          <el-tag :type="scope.row.type === '0' ? 'primary' : 'warning'">
+            {{ scope.row.type === "0" ? "满减券" : "折扣券" }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="面值" min-width="120">
-        <template #default="scope"> {{ scope.row.value }}元 </template>
+        <template #default="scope">
+ 
+          {{ scope.row.value}}{{ scope.row.type === "0" ? "元" : "折"  }}
+        </template>
       </el-table-column>
       <el-table-column label="使用门槛" min-width="120">
         <template #default="scope"> {{ scope.row.threshold }}元 </template>
@@ -132,11 +135,20 @@
         </el-form-item>
         <el-form-item label="面值" prop="value">
           <el-input-number
+            v-if="form.type === '0'"
             v-model="form.value"
             :min="0.01"
             :precision="2"
             style="width: 100%"
             placeholder="请输入面值"
+          />
+          <el-input-number
+            v-else
+            v-model="form.value"
+            :min="1"
+            :precision="1"
+            style="width: 100%"
+            placeholder="请输入折扣"
           />
         </el-form-item>
         <el-form-item label="使用门槛" prop="threshold">
@@ -329,7 +341,7 @@ const loadTableData = async () => {
     });
 
     tableData.value = data?.dataList || [];
-    total.value = Number(data.totalCount) ||0;
+    total.value = Number(data.totalCount) || 0;
   } catch (error) {
     loading.value = false;
     ElMessage.error(error || "获取数据失败");
@@ -349,8 +361,6 @@ const handleSizeChange = (val) => {
   pageSize.value = val;
   loadTableData();
 };
-
- 
 
 // 新增优惠券
 const handleAdd = () => {

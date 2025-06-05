@@ -2,75 +2,71 @@
   <div class="order-container">
     <div class="header">
       <h2>订单管理</h2>
+      <div class="header-actions">
+        <div class="label">订单状态：</div>
+        <el-select
+          v-model="orderStatus"
+          placeholder="请选择订单状态"
+          style="width: 100%"
+          @change="loadTableData"
+        >
+          <el-option
+            v-for="item in orderStatusOpts"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </div>
     </div>
 
     <!-- 表格区域 -->
-    <el-table :data="tableData" border style="width: 100%" v-loading="loading" fit>
-      <el-table-column prop="orderId" label="订单ID" min-width="80" />
-      <el-table-column prop="orderName" label="订单名称" min-width="120" />
-      <el-table-column label="订单服务" min-width="150">
-        <template #default="scope">
-          <div v-if="scope.row.services && scope.row.services.length > 0">
-            <el-tag 
-              v-for="service in scope.row.services" 
-              :key="service.id" 
-              class="service-tag"
-              type="success"
-              effect="plain"
-            >
-              {{ service.name }}
-            </el-tag>
-          </div>
-          <span v-else>-</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="订单价格" min-width="100">
-        <template #default="scope">
-          <span>{{ scope.row.orderPrice ? `${scope.row.orderPrice.toFixed(2)}元` : '-' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="订单家政保洁人员" min-width="120">
-        <template #default="scope">
-          <span>{{ scope.row.nanny ? scope.row.nanny.name : '-' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" min-width="150">
-        <template #default="scope">
-          {{ scope.row.createdAt ? formatDate(scope.row.createdAt) : '-' }}
-        </template>
-      </el-table-column>
+    <el-table
+      :data="tableData"
+      border
+      style="width: 100%"
+      v-loading="loading"
+      fit
+    >
+      <el-table-column prop="orderCode" label="订单编号" min-width="120" />
       <el-table-column label="订单状态" min-width="100">
         <template #default="scope">
-          <el-tag :type="scope.row.status === 'completed' ? 'success' : 'warning'">
-            {{ scope.row.status === 'completed' ? '已完成' : '未完成' }}
+          <el-tag :type="getOrderStatusType(scope.row.orderStatus)">
+            {{ getOrderStatusText(scope.row.orderStatus) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="订单地址" min-width="200" show-overflow-tooltip>
+      <el-table-column prop="contactPhone" label="联系电话" min-width="120" />
+      <el-table-column label="实际金额" min-width="100">
         <template #default="scope">
-          <span>{{ scope.row.address || '-' }}</span>
+          <span>{{ scope.row.realAmount ? `${scope.row.realAmount.toFixed(2)}元` : '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="订单人号码" min-width="120">
+      <el-table-column label="优惠金额" min-width="100">
         <template #default="scope">
-          <span>{{ scope.row.customerPhone || '-' }}</span>
+          <span>{{ scope.row.discountAmount ? `${scope.row.discountAmount.toFixed(2)}元` : '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="订单完成时间" min-width="150">
+      <el-table-column label="服务时长" min-width="100">
         <template #default="scope">
-          {{ scope.row.completedAt ? formatDate(scope.row.completedAt) : '-' }}
+          <span>{{ scope.row.serviceDuration ? `${scope.row.serviceDuration}分钟` : '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="180" fixed="right">
+      <el-table-column label="下单时间" min-width="150">
         <template #default="scope">
-          <el-button 
-            :type="scope.row.status === 'completed' ? 'info' : 'success'" 
-            size="small" 
-            @click="handleStatusChange(scope.row)"
-          >
-            {{ scope.row.status === 'completed' ? '标记未完成' : '标记完成' }}
+          {{ scope.row.orderTime ? formatDate(scope.row.orderTime) : '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="预约时间" min-width="150">
+        <template #default="scope">
+          {{ scope.row.scheduleTime ? formatDate(scope.row.scheduleTime) : '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" min-width="100" fixed="right">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="handleViewDetails(scope.row)">
+            查看详情
           </el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -88,47 +84,94 @@
       />
     </div>
 
-    <!-- 编辑订单状态弹窗 -->
+    <!-- 订单详情弹窗 -->
     <el-dialog
-      v-model="dialogVisible"
-      title="更新订单状态"
-      width="500px"
+      v-model="detailsDialogVisible"
+      title="订单详情"
+      width="600px"
       center
     >
-      <el-form ref="formRef" :model="form" label-width="100px">
-        <el-form-item label="订单状态">
-          <el-radio-group v-model="form.status">
-            <el-radio label="pending">未完成</el-radio>
-            <el-radio label="completed">已完成</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="完成备注" v-if="form.status === 'completed'">
-          <el-input
-            v-model="form.completionNote"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入完成备注（可选）"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmStatusChange">确认</el-button>
-        </span>
-      </template>
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="订单编号">{{ currentOrder.orderCode || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="订单状态">
+          <el-tag :type="getOrderStatusType(currentOrder.orderStatus)">
+            {{ getOrderStatusText(currentOrder.orderStatus) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="服务类型ID">{{ currentOrder.serviceTypeId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="服务人员ID">{{ currentOrder.nannyId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="下单时间">{{ currentOrder.orderTime ? formatDate(currentOrder.orderTime) : '-' }}</el-descriptions-item>
+        <el-descriptions-item label="预约时间">{{ currentOrder.scheduleTime ? formatDate(currentOrder.scheduleTime) : '-' }}</el-descriptions-item>
+        <el-descriptions-item label="服务时长">{{ currentOrder.serviceDuration ? `${currentOrder.serviceDuration}分钟` : '-' }}</el-descriptions-item>
+        <el-descriptions-item label="联系电话">{{ currentOrder.contactPhone || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="订单总金额">{{ currentOrder.totalAmount ? `${currentOrder.totalAmount.toFixed(2)}元` : '-' }}</el-descriptions-item>
+        <el-descriptions-item label="优惠金额">{{ currentOrder.discountAmount ? `${currentOrder.discountAmount.toFixed(2)}元` : '-' }}</el-descriptions-item>
+        <el-descriptions-item label="实际金额">{{ currentOrder.realAmount ? `${currentOrder.realAmount.toFixed(2)}元` : '-' }}</el-descriptions-item>
+        <el-descriptions-item label="客户评分">{{ currentOrder.customerRating || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="客户评价" :span="2">{{ currentOrder.customerComment || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="服务人员反馈" :span="2">{{ currentOrder.providerFeedback || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="服务地址ID">{{ currentOrder.serviceAddressId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="取消原因" :span="2">{{ currentOrder.cancelReason || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="取消方">{{ currentOrder.cancelledBy?getCancelText(currentOrder.cancelledBy) : '-' }}</el-descriptions-item>
+      </el-descriptions>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import dayjs from 'dayjs';
+import { ref, reactive, onMounted } from "vue";
+import { ElMessage } from "element-plus";
+import dayjs from "dayjs";
+import { getOrderListApi } from "@/api/order";
 
 // 格式化日期函数
 const formatDate = (date) => {
-  return dayjs(date).format('YYYY/MM/DD HH:mm');
+  return dayjs(date).format("YYYY/MM/DD HH:mm");
+};
+
+// 订单状态选项
+const orderStatusOpts = [
+  { value: -1, label: "全部" },
+  { value: 0, label: "待付款" },
+  { value: 1, label: "待服务" },
+  { value: 2, label: "服务中" },
+  { value: 3, label: "已完成" },
+  { value: 4, label: "已取消" },
+];
+
+// 获取订单状态类型
+const getOrderStatusType = (status) => {
+  const statusMap = {
+    0: 'warning',
+    1: 'info',
+    2: 'primary',
+    3: 'success',
+    4: 'danger'
+  };
+  return statusMap[status] || 'info';
+};
+
+// 获取订单状态文本
+const getOrderStatusText = (status) => {
+  const statusMap = {
+    0: '待付款',
+    1: '待服务',
+    2: '服务中',
+    3: '已完成',
+    4: '已取消'
+  };
+  return statusMap[status] || '未知状态';
+};
+
+// 获取取消方文本
+const getCancelText = (status) => {
+  const statusMap = {
+ 
+    1: '客户',
+    2: '管理员',
+    3: '系统',
+  };
+  return statusMap[status] || '未知状态';
 };
 
 // 表格数据
@@ -137,133 +180,34 @@ const loading = ref(false);
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
+const orderStatus = ref(-1);
 
-// 弹窗相关
-const dialogVisible = ref(false);
-const formRef = ref(null);
-const form = reactive({
-  orderId: null,
-  status: 'pending',
-  completionNote: ''
-});
-
-// 家政保洁人员列表
-const nannyList = [
-  { id: 1, name: '王阿姨（高级保洁人员）' },
-  { id: 2, name: '李阿姨（家庭保洁）' },
-  { id: 3, name: '张阿姨（育婴师）' },
-  { id: 4, name: '赵阿姨（养老护理）' },
-  { id: 5, name: '刘阿姨（月嫂）' }
-];
-
-// 服务列表
-const serviceList = [
-  { id: 1, name: '日常保洁' },
-  { id: 2, name: '深度清洁' },
-  { id: 3, name: '家电清洗' },
-  { id: 4, name: '厨卫保洁' },
-  { id: 5, name: '家居养护' },
-  { id: 6, name: '母婴护理' },
-  { id: 7, name: '老人照护' }
-];
-
-// 生成模拟数据
-const generateMockData = (page, limit) => {
-  const mockData = [];
-  const offset = (page - 1) * limit;
-  const count = Math.min(limit, 100 - offset);
-  
-  const phonePrefix = ['130', '131', '132', '133', '134', '135', '136', '137', '138', '139', '150', '151', '152', '153', '155', '156', '157', '158', '159', '180', '181', '182', '183', '184', '185', '186', '187', '188', '189'];
-  
-  for (let i = 0; i < count; i++) {
-    // 随机生成1-3个服务
-    const serviceCount = Math.floor(Math.random() * 3) + 1;
-    const services = [];
-    for (let j = 0; j < serviceCount; j++) {
-      const randomService = serviceList[Math.floor(Math.random() * serviceList.length)];
-      if (!services.some(s => s.id === randomService.id)) {
-        services.push(randomService);
-      }
-    }
-    
-    // 随机选择一个家政保洁人员
-    const nanny = nannyList[Math.floor(Math.random() * nannyList.length)];
-    
-    // 随机生成电话号码
-    const prefix = phonePrefix[Math.floor(Math.random() * phonePrefix.length)];
-    const suffix = Math.floor(Math.random() * 10000000).toString().padStart(8, '0');
-    const phone = `${prefix}${suffix}`;
-    
-    // 随机生成地址
-    const provinces = ['北京市', '上海市', '广东省', '浙江省', '江苏省', '四川省', '湖北省'];
-    const cities = ['北京市', '上海市', '广州市', '深圳市', '杭州市', '南京市', '成都市', '武汉市'];
-    const districts = ['朝阳区', '海淀区', '东城区', '西城区', '浦东新区', '静安区', '天河区', '福田区', '西湖区', '江干区', '武侯区', '锦江区', '江岸区', '洪山区'];
-    const streets = ['中关村大街', '长安街', '南京路', '解放路', '人民路', '天目山路', '武林路', '东风路', '建设路', '和平路'];
-    
-    const province = provinces[Math.floor(Math.random() * provinces.length)];
-    const city = cities[Math.floor(Math.random() * cities.length)];
-    const district = districts[Math.floor(Math.random() * districts.length)];
-    const street = streets[Math.floor(Math.random() * streets.length)];
-    const number = Math.floor(Math.random() * 100) + 1;
-    
-    const address = `${province}${city}${district}${street}${number}号`;
-    
-    // 随机决定订单状态
-    const status = Math.random() > 0.3 ? 'completed' : 'pending';
-    
-    // 生成创建时间和完成时间
-    const createdAt = new Date(Date.now() - Math.floor(Math.random() * 10000000000));
-    let completedAt = null;
-    if (status === 'completed') {
-      // 完成时间应该晚于创建时间
-      completedAt = new Date(createdAt.getTime() + Math.floor(Math.random() * 86400000 * 7)); // 1-7天后完成
-    }
-    
-    const price = (Math.floor(Math.random() * 20000) + 5000) / 100; // 50-250元之间的价格
-    
-    mockData.push({
-      orderId: `ORD${10000 + offset + i}`,
-      orderName: `${services.map(s => s.name).join('+')}订单`,
-      services: services,
-      orderPrice: price,
-      nanny: nanny,
-      createdAt: createdAt,
-      status: status,
-      address: address,
-      customerPhone: phone,
-      completedAt: completedAt,
-      completionNote: status === 'completed' ? '客户已确认满意' : ''
-    });
-  }
-  
-  return {
-    code: 0,
-    message: '',
-    data: {
-      totalCount: 100,
-      pageNo: page,
-      pageSize: limit,
-      dataList: mockData
-    },
-    success: true
-  };
-};
+// 详情弹窗相关
+const detailsDialogVisible = ref(false);
+const currentOrder = ref({});
 
 // 加载表格数据
-const loadTableData = () => {
+const loadTableData = async () => {
   loading.value = true;
-  
-  // 模拟接口请求
-  setTimeout(() => {
-    const res = generateMockData(currentPage.value, pageSize.value);
-    if (res.success) {
-      tableData.value = res.data.dataList;
-      total.value = res.data.totalCount;
-    } else {
-      ElMessage.error(res.message || '获取数据失败');
-    }
-    loading.value = false;
-  }, 500);
+  try {
+    const { data } = await getOrderListApi({
+      pageNo: currentPage.value,
+      pageSize: pageSize.value,
+      orderStatus: orderStatus.value === -1 ? null : orderStatus.value,
+    });
+    tableData.value = data.dataList || [];
+    total.value = Number(data.totalCount);
+  } catch (e) {
+    console.error("加载订单列表失败:", e);
+    ElMessage.error("加载订单列表失败");
+  }
+  loading.value = false;
+};
+
+// 查看订单详情
+const handleViewDetails = (row) => {
+  currentOrder.value = row;
+  detailsDialogVisible.value = true;
 };
 
 // 页码变化
@@ -278,74 +222,6 @@ const handleSizeChange = (val) => {
   loadTableData();
 };
 
-// 处理状态变更
-const handleStatusChange = (row) => {
-  // 简单状态切换
-  if (row.status === 'completed') {
-    ElMessageBox.confirm(
-      `确定要将订单"${row.orderName}"标记为未完成吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    ).then(() => {
-      row.status = 'pending';
-      row.completedAt = null;
-      row.completionNote = '';
-      ElMessage.success('订单状态已更新');
-    }).catch(() => {
-      // 取消操作
-    });
-  } else {
-    // 打开弹窗进行更详细的设置
-    form.orderId = row.orderId;
-    form.status = 'completed';
-    form.completionNote = '';
-    dialogVisible.value = true;
-  }
-};
-
-// 确认状态变更
-const confirmStatusChange = () => {
-  const row = tableData.value.find(item => item.orderId === form.orderId);
-  if (row) {
-    row.status = form.status;
-    if (form.status === 'completed') {
-      row.completedAt = new Date();
-      row.completionNote = form.completionNote;
-    } else {
-      row.completedAt = null;
-      row.completionNote = '';
-    }
-    ElMessage.success('订单状态已更新');
-  }
-  dialogVisible.value = false;
-};
-
-// 删除订单
-const handleDelete = (row) => {
-  ElMessageBox.confirm(
-    `确定要删除订单"${row.orderName}"吗？`,
-    '提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    // 实际项目中这里需要调用接口删除数据
-    const index = tableData.value.findIndex(item => item.orderId === row.orderId);
-    if (index !== -1) {
-      tableData.value.splice(index, 1);
-      ElMessage.success('删除成功');
-    }
-  }).catch(() => {
-    // 取消删除
-  });
-};
-
 // 页面加载时获取数据
 onMounted(() => {
   loadTableData();
@@ -355,6 +231,17 @@ onMounted(() => {
 <style scoped>
 .order-container {
   padding: 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  width: 360px;
+  align-items: center;
+}
+
+.header-actions .label {
+  width: 110px;
 }
 
 .header {
@@ -370,13 +257,8 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
-.dialog-footer {
-  display: flex;
+:deep(.el-descriptions__label) {
+  width: 120px;
   justify-content: flex-end;
-}
-
-.service-tag {
-  margin-right: 5px;
-  margin-bottom: 5px;
 }
 </style>

@@ -278,7 +278,7 @@ const loadClass = async () => {
   try {
     const { data } = await getAllClassListApi();
     categoryOptions.value = data || [];
-    categorySonOptions.value = data.filter(i => i.level === 1);
+    categorySonOptions.value = data.filter(i => i.level === 2);
   } catch (error) {
     console.error("加载分类数据失败:", error);
     ElMessage.error("加载分类数据失败");

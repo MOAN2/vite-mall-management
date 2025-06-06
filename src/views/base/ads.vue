@@ -234,7 +234,7 @@ const selectedRows = ref([]);
 const rules = {
   title: [
     { required: true, message: "请输入广告名称", trigger: "blur" },
-    { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
+    { min: 3, max: 10, message: "长度在 3 到 10 个字符之间", trigger: "blur" },
   ],
 };
 // 处理表格选择变化

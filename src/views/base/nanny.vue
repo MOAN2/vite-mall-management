@@ -11,22 +11,23 @@
           clearable
           @change="loadTableData"
         />
-        <el-button 
-          type="danger" 
-          :disabled="selectedRows.length === 0" 
+        <el-button
+          type="danger"
+          :disabled="selectedRows.length === 0"
           @click="handleBatchDelete"
-        >批量删除</el-button>
+          >批量删除</el-button
+        >
         <el-button type="primary" @click="handleAdd">新增保洁人员</el-button>
       </div>
     </div>
 
     <!-- 表格区域 -->
-    <el-table 
+    <el-table
       stripe
-      :data="tableData" 
-      border 
-      style="width: 100%" 
-      v-loading="loading" 
+      :data="tableData"
+      border
+      style="width: 100%"
+      v-loading="loading"
       fit
       @selection-change="handleSelectionChange"
     >
@@ -35,28 +36,30 @@
       <el-table-column prop="name" label="姓名" min-width="120" />
       <el-table-column label="性别" min-width="80">
         <template #default="scope">
-          <span>{{ scope.row.gender === 0 ? '男' : '女' }}</span>
+          <span>{{ scope.row.gender === 0 ? "男" : "女" }}</span>
         </template>
       </el-table-column>
       <el-table-column label="年龄" min-width="80">
         <template #default="scope">
-          <span>{{ scope.row.age || '-' }}</span>
+          <span>{{ scope.row.age || "-" }}</span>
         </template>
       </el-table-column>
       <el-table-column label="联系电话" min-width="120">
         <template #default="scope">
-          <span>{{ scope.row.phone || '-' }}</span>
+          <span>{{ scope.row.phone || "-" }}</span>
         </template>
       </el-table-column>
       <el-table-column label="工作年限" min-width="100">
         <template #default="scope">
-          <span>{{ scope.row.experienceYears ? `${scope.row.experienceYears}年` : '-' }}</span>
+          <span>{{
+            scope.row.experienceYears ? `${scope.row.experienceYears}年` : "-"
+          }}</span>
         </template>
       </el-table-column>
       <el-table-column label="工作状态" min-width="100">
         <template #default="scope">
           <el-tag :type="scope.row.status === 0 ? 'success' : 'primary'">
-            {{ scope.row.status === 0 ? '空闲' : '工作中' }}
+            {{ scope.row.status === 0 ? "空闲" : "工作中" }}
           </el-tag>
         </template>
       </el-table-column>
@@ -73,10 +76,14 @@
       </el-table-column>
       <el-table-column label="服务分类" min-width="150">
         <template #default="scope">
-          <div v-if="scope.row.serviceTypeIds && scope.row.serviceTypeIds.length > 0">
-            <el-tag 
-              v-for="typeId in scope.row.serviceTypeIds" 
-              :key="typeId" 
+          <div
+            v-if="
+              scope.row.serviceTypeIds && scope.row.serviceTypeIds.length > 0
+            "
+          >
+            <el-tag
+              v-for="typeId in scope.row.serviceTypeIds"
+              :key="typeId"
               class="category-tag"
               type="info"
               effect="plain"
@@ -89,8 +96,12 @@
       </el-table-column>
       <el-table-column label="操作" min-width="180" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button type="primary" size="small" @click="handleEdit(scope.row)"
+            >编辑</el-button
+          >
+          <el-button type="danger" size="small" @click="handleDelete(scope.row)"
+            >删除</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -115,14 +126,25 @@
       width="650px"
       center
     >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="姓名" prop="name">
           <el-input v-model="form.name" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item class="avatar-container" label="头像">
+ 
+          <el-upload
+            class="avatar-uploader"
+            :show-file-list="false"
+            :limit="1"
+            :before-upload="beforeUpload"
+            :on-success="handleUploadHead"
+            :on-remove="handleRemove"
+            :action="uploadUrl"
+            :auto-upload="true"
+          >
+            <img v-if="form.avatarUrl" :src="form.avatarUrl" class="avatar" />
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          </el-upload>
         </el-form-item>
         <el-form-item label="性别" prop="gender">
           <el-radio-group v-model="form.gender">
@@ -134,7 +156,11 @@
           <el-input-number v-model="form.age" :min="18" :max="65" />
         </el-form-item>
         <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="form.phone" placeholder="请输入联系电话" :maxlength="11"/>
+          <el-input
+            v-model="form.phone"
+            placeholder="请输入联系电话"
+            :maxlength="11"
+          />
         </el-form-item>
         <el-form-item label="工作年限" prop="experienceYears">
           <el-input-number v-model="form.experienceYears" :min="0" :max="50" />
@@ -171,7 +197,11 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+          <el-button
+            type="primary"
+            @click="handleSubmit"
+            :loading="submitLoading"
+          >
             确定
           </el-button>
         </span>
@@ -193,7 +223,11 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="batchDeleteDialogVisible = false">取消</el-button>
-          <el-button type="danger" @click="confirmBatchDelete" :loading="batchDeleteLoading">
+          <el-button
+            type="danger"
+            @click="confirmBatchDelete"
+            :loading="batchDeleteLoading"
+          >
             确认删除
           </el-button>
         </span>
@@ -203,20 +237,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { Search, WarningFilled } from '@element-plus/icons-vue';
-import * as api from '@/api/base.js'
+import { ref, reactive, onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { Search, WarningFilled } from "@element-plus/icons-vue";
+import * as api from "@/api/base.js";
 import { getAllClassListApi } from "@/api/classify.js";
-
+import { beforeUpload } from "@/utils/common.js";
 // 表格数据
 const tableData = ref([]);
 const loading = ref(false);
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
-const searchValue = ref('');
-
+const searchValue = ref("");
+let uploadUrl = `/api/admin/file/upload`;
+const BASE_URL = import.meta.env.VITE_URL;
 // 选中行数据
 const selectedRows = ref([]);
 
@@ -226,7 +261,7 @@ const batchDeleteLoading = ref(false);
 
 // 弹窗相关
 const dialogVisible = ref(false);
-const dialogType = ref('add');
+const dialogType = ref("add");
 const formRef = ref(null);
 const submitLoading = ref(false);
 
@@ -237,29 +272,43 @@ const categorySonOptions = ref([]);
 // 表单数据
 const form = reactive({
   id: null,
-  name: '',
+  name: "",
   gender: 0,
   age: 18,
-  phone: '',
+  phone: "",
   experienceYears: 0,
   status: 0,
   rating: 5.0,
-  serviceTypeIds: []
+  serviceTypeIds: [],
+  avatarUrl: "",
 });
 
 // 表单验证规则
 const rules = {
-  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' },{
+  name: [{ required: true, message: "请输入姓名", trigger: "blur" }, { min: 3, max: 10, message: "长度在 3 到 10 个字符", trigger: "blur" },],
+  phone: [
+    { required: true, message: "请输入联系电话", trigger: "blur" },
+    {
       pattern: /^1[3-9]\d{9}$/,
       message: "请输入11位正确的手机号",
       trigger: "blur",
-    },],
-  serviceTypeIds: [{ required: true, message: '请选择服务分类', trigger: 'change' },
-    
-  ]
+    },
+  ],
+  serviceTypeIds: [
+    { required: true, message: "请选择服务分类", trigger: "change" },
+  ],
 };
-
+// 处理主图文件上传
+const handleUploadHead = (response, file) => {
+  if (response && response.code === 200 && response.data) {
+    // 替换headImg数据，确保只有服务器返回的图片
+    form.avatarUrl = `${BASE_URL}${response.data}`;
+  }
+};
+// 处理文件移除
+const handleRemove = async () => {
+  form.avatarUrl = "";
+};
 // 获取分类名称
 const getCategoryName = (categoryId) => {
   const category = categoryOptions.value.find(
@@ -278,7 +327,7 @@ const loadClass = async () => {
   try {
     const { data } = await getAllClassListApi();
     categoryOptions.value = data || [];
-    categorySonOptions.value = data.filter(i => i.level === 2);
+    categorySonOptions.value = data.filter((i) => i.level === 2);
   } catch (error) {
     console.error("加载分类数据失败:", error);
     ElMessage.error("加载分类数据失败");
@@ -308,45 +357,42 @@ const loadTableData = async () => {
 
 // 新增
 const handleAdd = () => {
-  dialogType.value = 'add';
+  dialogType.value = "add";
   Object.assign(form, {
     id: null,
-    name: '',
+    name: "",
     gender: 0,
     age: 18,
-    phone: '',
+    phone: "",
     experienceYears: 0,
     status: 0,
     rating: 5.0,
-    serviceTypeIds: []
+    serviceTypeIds: [],
+    avatarUrl: "",
   });
   dialogVisible.value = true;
 };
 
 // 编辑
 const handleEdit = (row) => {
-  dialogType.value = 'edit';
+  dialogType.value = "edit";
   Object.assign(form, row);
   dialogVisible.value = true;
 };
 
 // 删除
 const handleDelete = (row) => {
-  ElMessageBox.confirm(
-    '确定要删除该保洁人员吗？',
-    '提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(async () => {
+  ElMessageBox.confirm("确定要删除该保洁人员吗？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(async () => {
     try {
-      await api.delNannyApi({nannyIds:[row.id]});
-      ElMessage.success('删除成功');
+      await api.delNannyApi({ nannyIds: [row.id] });
+      ElMessage.success("删除成功");
       loadTableData();
     } catch (error) {
-      ElMessage.error(error || '删除失败');
+      ElMessage.error(error || "删除失败");
     }
   });
 };
@@ -361,13 +407,13 @@ const handleBatchDelete = () => {
 const confirmBatchDelete = async () => {
   batchDeleteLoading.value = true;
   try {
-    const ids = selectedRows.value.map(row => row.id);
-    await api.delNannyApi({nannyIds:ids});
+    const ids = selectedRows.value.map((row) => row.id);
+    await api.delNannyApi({ nannyIds: ids });
     ElMessage.success(`成功删除${ids.length}个保洁人员`);
     batchDeleteDialogVisible.value = false;
     loadTableData();
   } catch (error) {
-    ElMessage.error(error || '批量删除失败');
+    ElMessage.error(error || "批量删除失败");
   } finally {
     batchDeleteLoading.value = false;
   }
@@ -376,22 +422,22 @@ const confirmBatchDelete = async () => {
 // 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
+
   await formRef.value.validate(async (valid) => {
     if (valid) {
       submitLoading.value = true;
       try {
-        if (dialogType.value === 'add') {
+        if (dialogType.value === "add") {
           await api.addNannyApi(form);
-          ElMessage.success('添加成功');
+          ElMessage.success("添加成功");
         } else {
           await api.editNannyApi(form);
-          ElMessage.success('更新成功');
+          ElMessage.success("更新成功");
         }
         dialogVisible.value = false;
         loadTableData();
       } catch (error) {
-        ElMessage.error(error || '操作失败');
+        ElMessage.error(error || "操作失败");
       } finally {
         submitLoading.value = false;
       }
@@ -465,5 +511,35 @@ onMounted(async () => {
   color: #f56c6c;
   margin-top: 10px;
   font-size: 12px;
+}
+
+::v-deep(.avatar-container) {
+  display: flex;
+  justify-content: center;
+}
+::v-deep(.avatar-uploader .el-upload) {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+::v-deep(.avatar-uploader .el-upload:hover) {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
+}
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
 }
 </style>

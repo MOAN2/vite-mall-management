@@ -293,7 +293,7 @@ const handleSelectionChange = (selection) => {
 const rules = {
   name: [
     { required: true, message: "请输入优惠券名称", trigger: "blur" },
-    { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
+    { min: 3, max: 10, message: "长度在 3 到 10 个字符之间", trigger: "blur" },
   ],
   type: [{ required: true, message: "请选择优惠券类型", trigger: "change" }],
   value: [{ required: true, message: "请输入面值", trigger: "blur" }],

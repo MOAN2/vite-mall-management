@@ -4,7 +4,7 @@
       <div class="card-header">
         <h3>个人信息</h3>
       </div>
- 
+
       <el-form
         ref="formRef"
         :model="form"
@@ -12,7 +12,6 @@
         label-width="100px"
         class="user-form"
       >
-
         <el-form-item class="avatar-container" label="头像">
           <el-upload
             class="avatar-uploader"
@@ -22,11 +21,8 @@
             :on-success="handleUploadHead"
             :on-remove="handleRemove"
             :action="uploadUrl"
- 
-        accept="image/*"
+            accept="image/*"
           >
-         
-
             <img v-if="form.avatar" :src="form.avatar" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
@@ -130,7 +126,7 @@ let form = reactive({
   phone: "",
   avatar: "",
   superAdmin: false,
-  status:true
+  status: true,
 });
 
 // 密码表单数据
@@ -199,7 +195,7 @@ const getUserInfo = async () => {
       form.avatar = data.avatar;
       form.phone = data.phone;
       form.nickname = data.nickname;
-      form.superAdmin = data?.superAdmin ||false;
+      form.superAdmin = data?.superAdmin || false;
       form.status = data?.status || true;
     }
   } catch (error) {
@@ -208,7 +204,6 @@ const getUserInfo = async () => {
   loading.close();
 };
 
- 
 // 处理主图文件上传
 const handleUploadHead = (response, file) => {
   if (response && response.code === 200 && response.data) {
@@ -218,7 +213,7 @@ const handleUploadHead = (response, file) => {
 };
 // 处理文件移除
 const handleRemove = async () => {
-  form.avatar=''
+  form.avatar = "";
 };
 // 显示修改密码对话框
 const showPasswordDialog = () => {
@@ -303,7 +298,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
 }
-::v-deep(.avatar-uploader .el-upload ) {
+::v-deep(.avatar-uploader .el-upload) {
   border: 1px dashed var(--el-border-color);
   border-radius: 6px;
   cursor: pointer;
@@ -311,7 +306,6 @@ onMounted(() => {
   overflow: hidden;
   transition: var(--el-transition-duration-fast);
 }
- 
 
 ::v-deep(.avatar-uploader .el-upload:hover) {
   border-color: var(--el-color-primary);

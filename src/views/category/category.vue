@@ -293,7 +293,7 @@ const selectedRows = ref([]);
 const rules = {
   title: [
     { required: true, message: "请输入服务名称", trigger: "blur" },
-    { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
+    { min: 3, max: 20, message: "长度在 3 到 20 个字符之间", trigger: "blur" },
   ],
   categoryId: [{ required: true, message: "请选择服务分类", trigger: "blur" }],
  

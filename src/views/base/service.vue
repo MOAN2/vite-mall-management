@@ -217,7 +217,7 @@ const form = reactive({
 const rules = {
   detail: [
     { required: true, message: "请输入服务名称" },
-    { min: 1, max: 20, message: "长度在 1 到 20 个字符之间", trigger: "blur" },
+    { min: 3, max: 10, message: "长度在 3 到 10 个字符之间", trigger: "blur" },
   ],
   realPrice: [{ required: true, message: "请输入服务价格", trigger: "blur" }],
   projectId: [{ required: true, message: "请选择所属家政", trigger: "blur" }],
